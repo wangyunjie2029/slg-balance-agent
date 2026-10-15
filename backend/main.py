@@ -1,0 +1,22 @@
+"""
+SLG 数值平衡 Agent —— 后端入口
+Step 0：先验证 FastAPI 服务能正常启动并返回数据。
+"""
+
+from fastapi import FastAPI
+
+# 创建 FastAPI 应用实例；title/version 会显示在自动生成的接口文档 /docs 里
+app = FastAPI(title="SLG 数值平衡 Agent", version="0.1.0")
+
+
+# @app.get("/ping") 是一个"路由装饰器"：
+# 当浏览器用 GET 方式访问 /ping 时，下面的函数会被 FastAPI 自动调用。
+@app.get("/ping")
+def ping():
+    # 返回的 dict 会被 FastAPI 自动转成 JSON：{"ok": true, "message": "pong"}
+    return {"ok": True, "message": "pong"}
+
+
+@app.get("/")
+def root():
+    return {"service": "slg-balance-agent", "status": "running"}
