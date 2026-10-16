@@ -4,6 +4,9 @@ Step 0：先验证 FastAPI 服务能正常启动并返回数据。
 """
 
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from llm import chat_stream
+from pydantic import BaseModel
 
 # 创建 FastAPI 应用实例；title/version 会显示在自动生成的接口文档 /docs 里
 app = FastAPI(title="SLG 数值平衡 Agent", version="0.1.0")
@@ -20,3 +23,18 @@ def ping():
 @app.get("/")
 def root():
     return {"service": "slg-balance-agent", "status": "running"}
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+@app.post("/api/chat/stream")
+async def chat_stream_api(body: ChatRequest):
+    """SSE 流式对话：把模型的增量文本包成 SSE 格式推给客户端。"""
+
+    def event_gen():
+        for piece in chat_stream([{"role": "user", "content": body.message}]):
+            yield f"data: {piece}\n\n"  # ← SSE 格式：data: 前缀 + 空行结尾
+
+    return StreamingResponse(event_gen(), media_type="text/event-stream")

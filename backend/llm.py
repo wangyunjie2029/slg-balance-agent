@@ -31,3 +31,17 @@ def chat(messages: list[dict]) -> str:
         messages=messages,
     )
     return resp.choices[0].message.content
+
+
+def chat_stream(messages: list[dict]):
+    """流式对话：逐块 yield 回复文本（生成器）。"""
+    client = get_client()
+    stream = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=messages,
+        stream=True,  # ← 唯一的区别
+    )
+    for chunk in stream:
+        delta = chunk.choices[0].delta  # 每个增量块的"增量"部分
+        if delta.content:  # 最后一块可能没有内容，要防
+            yield delta.content
