@@ -1,4 +1,4 @@
-from generals import COMBAT_WEIGHTS, General, calc_general_combat_power
+from generals import General, calc_general_combat_power
 
 zhangfei = General(
     general_id="001",
