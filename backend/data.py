@@ -1,0 +1,106 @@
+"""
+静态数据：兵种表 + 武将表（后续将由 Excel 解析器替代）。
+"""
+
+from generals import General
+from models import UnitStats
+
+UNITS = {
+    "骑兵": UnitStats(
+        unit_id="cavalry",
+        unit_name="骑兵",
+        level=1,
+        attack=80,
+        defense=50,
+        hp=100,
+        speed=30,
+        cost=150,
+        train_time=20.0,
+    ),
+    "盾兵": UnitStats(
+        unit_id="shield",
+        unit_name="盾兵",
+        level=1,
+        attack=40,
+        defense=80,
+        hp=120,
+        speed=20,
+        cost=200,
+        train_time=25.0,
+    ),
+    "弓兵": UnitStats(
+        unit_id="archer",
+        unit_name="弓兵",
+        level=1,
+        attack=70,
+        defense=30,
+        hp=80,
+        speed=25,
+        cost=180,
+        train_time=22.0,
+    ),
+    "枪兵": UnitStats(
+        unit_id="spear",
+        unit_name="枪兵",
+        level=1,
+        attack=60,
+        defense=60,
+        hp=90,
+        speed=25,
+        cost=160,
+        train_time=20.0,
+    ),
+    "器械": UnitStats(
+        unit_id="engine",
+        unit_name="器械",
+        level=1,
+        attack=150,
+        defense=10,
+        hp=60,
+        speed=15,
+        cost=250,
+        train_time=30.0,
+    ),
+}
+
+GENERALS = {
+    "张飞": General(
+        general_id="001",
+        name="张飞",
+        faction="蜀汉",
+        rarity=5,
+        force=98,
+        intellect=32,
+        leadership=85,
+        speed=71,
+        politics=15,
+        charm=45,
+        aptitude={"骑兵": "S", "盾兵": "A", "弓兵": "B", "枪兵": "S", "器械": "C"},
+    ),
+    "诸葛亮": General(
+        general_id="002",
+        name="诸葛亮",
+        faction="蜀汉",
+        rarity=5,
+        force=25,
+        intellect=99,
+        leadership=78,
+        speed=60,
+        politics=95,
+        charm=80,
+        aptitude={"骑兵": "C", "盾兵": "B", "弓兵": "A", "枪兵": "B", "器械": "S"},
+    ),
+    "袁绍": General(
+        general_id="003",
+        name="袁绍",
+        faction="袁氏",
+        rarity=4,
+        force=85,
+        intellect=70,
+        leadership=80,
+        speed=55,
+        politics=60,
+        charm=50,
+        aptitude={"骑兵": "B", "盾兵": "A", "弓兵": "C", "枪兵": "B", "器械": "B"},
+    ),
+}
