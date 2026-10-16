@@ -3,6 +3,9 @@ SLG 数值平衡 Agent —— 后端入口
 Step 0：先验证 FastAPI 服务能正常启动并返回数据。
 """
 
+import json
+
+from agent import ask_agent_stream
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from llm import chat_stream
@@ -31,10 +34,10 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat/stream")
 async def chat_stream_api(body: ChatRequest):
-    """SSE 流式对话：把模型的增量文本包成 SSE 格式推给客户端。"""
+    """Agent 流式对话：tool_call → tool_result → answer 事件序列。"""
 
     def event_gen():
-        for piece in chat_stream([{"role": "user", "content": body.message}]):
-            yield f"data: {piece}\n\n"  # ← SSE 格式：data: 前缀 + 空行结尾
+        for evt in ask_agent_stream(body.message):
+            yield f"event: {evt['event']}\ndata: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")

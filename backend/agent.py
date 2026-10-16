@@ -98,3 +98,44 @@ def ask_agent(question: str) -> str:
                 }
             )
         # 循环继续：带着工具结果再问模型，直到它给出最终回答
+
+
+def ask_agent_stream(question: str):
+    """流式 Agent：yield {"event": ..., "data": ...} 字典序列。"""
+    from llm import get_client
+
+    client = get_client()
+    messages = [
+        {
+            "role": "system",
+            "content": "你是 SLG 数值平衡助手。涉及对战/战力/胜率的问题必须调用工具获取真实数据，禁止凭记忆编造数字。",
+        },
+        {"role": "user", "content": question},
+    ]
+    while True:
+        resp = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=messages,
+            tools=TOOLS,
+        )
+        msg = resp.choices[0].message
+        if not msg.tool_calls:
+            yield {"event": "answer", "data": {"text": msg.content}}
+            return
+        messages.append(msg)
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+
+            yield {
+                "event": "tool_call",
+                "data": {"tool": tc.function.name, "args": args},
+            }
+            result = dispatch(tc.function.name, args)
+            yield {"event": "tool_result", "data": result}
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result, ensure_ascii=False),
+                }
+            )
