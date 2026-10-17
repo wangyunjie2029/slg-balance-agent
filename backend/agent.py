@@ -101,41 +101,27 @@ def ask_agent(question: str) -> str:
 
 
 def ask_agent_stream(question: str):
-    """流式 Agent：yield {"event": ..., "data": ...} 字典序列。"""
-    from llm import get_client
+    """流式 Agent（LangGraph 版）：消费 graph.stream，映射为事件序列。"""
+    from graph import graph
 
-    client = get_client()
-    messages = [
-        {
-            "role": "system",
-            "content": "你是 SLG 数值平衡助手。涉及对战/战力/胜率的问题必须调用工具获取真实数据，禁止凭记忆编造数字。",
-        },
-        {"role": "user", "content": question},
-    ]
-    while True:
-        resp = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=messages,
-            tools=TOOLS,
-        )
-        msg = resp.choices[0].message
-        if not msg.tool_calls:
-            yield {"event": "answer", "data": {"text": msg.content}}
-            return
-        messages.append(msg)
-        for tc in msg.tool_calls:
-            args = json.loads(tc.function.arguments)
+    for chunk in graph.stream(
+        {"messages": [("user", question)]},
+        stream_mode="updates",
+    ):
+        for node_name, update in chunk.items():
+            msg = update["messages"][-1]
+            if getattr(msg, "tool_calls", None):
+                for (
+                    tc
+                ) in msg.tool_calls:  # tool_calls 是字典列表：tc["name"] / tc["args"]
+                    yield {
+                        "event": "tool_call",
+                        "data": {"tool": tc["name"], "args": tc["args"]},
+                    }
 
-            yield {
-                "event": "tool_call",
-                "data": {"tool": tc.function.name, "args": args},
-            }
-            result = dispatch(tc.function.name, args)
-            yield {"event": "tool_result", "data": result}
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": json.dumps(result, ensure_ascii=False),
-                }
-            )
+            elif msg.type == "tool":
+                yield {"event": "tool_result", "data": json.loads(msg.content)}
+                # ↑ content 是 JSON 字符串，loads 回 dict，和 2-4 的数据形状保持一致
+
+            else:
+                yield {"event": "answer", "data": {"text": msg.content}}
