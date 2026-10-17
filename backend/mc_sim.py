@@ -24,7 +24,7 @@ def run_mc_sim(
     army_a: Army,
     army_b: Army,
     n: int = 1000,
-    damage_jitter: float = 0.2,
+    damage_jitter: float = 0.35,
     seed: int | None = None,  # ← 传种子则结果可复现
 ) -> McResult:
     """蒙特卡洛模拟：跑 n 场战斗，统计胜率。"""

@@ -44,7 +44,7 @@ def calc_matchup_matrix(n: int = 300) -> dict[str, dict[str, float]]:
             if a == b:
                 continue
             r = run_mc_sim(
-                build_army(a), build_army(b), n=n, damage_jitter=0.2, seed=42
+                build_army(a), build_army(b), n=n, damage_jitter=0.35, seed=42
             )
             matrix[a][b] = r.win_rate_a
     return matrix
