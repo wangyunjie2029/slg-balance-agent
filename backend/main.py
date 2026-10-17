@@ -30,6 +30,7 @@ def root():
 
 class ChatRequest(BaseModel):
     message: str
+    session_id: str = "default"  # 客户端没传就用默认槽
 
 
 @app.post("/api/chat/stream")
@@ -37,7 +38,7 @@ async def chat_stream_api(body: ChatRequest):
     """Agent 流式对话：tool_call → tool_result → answer 事件序列。"""
 
     def event_gen():
-        for evt in ask_agent_stream(body.message):
+        for evt in ask_agent_stream(body.message, body.session_id):
             yield f"event: {evt['event']}\ndata: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")

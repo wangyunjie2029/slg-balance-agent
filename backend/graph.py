@@ -6,10 +6,12 @@ import os
 from typing import Annotated
 
 from agent import TOOLS, dispatch  # 复用已有工具定义与执行
+from data import GENERALS, UNITS
 from dotenv import load_dotenv
 from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
@@ -50,7 +52,56 @@ def simulate_matchup(
     }
 
 
-TOOLS_FOR_GRAPH = [simulate_matchup]
+@tool
+def get_unit_info(
+    unit_name: Annotated[str, Field(description="兵种名，如'骑兵'")],
+) -> dict:
+    """查询一个兵种的完整基础数值（攻击/防御/血量/速度/造价/训练时间）。"""
+    unit = UNITS.get(unit_name)
+    if unit is None:
+        return {"error": f"未知兵种: {unit_name}，可用: {list(UNITS)}"}
+    from dataclasses import asdict
+
+    return asdict(unit)  # dataclass 一行转 dict
+
+
+tool
+
+
+def calc_army_power(
+    general_name: Annotated[str, Field(description="武将名，如'张飞'")],
+    troop_type: Annotated[str, Field(description="兵种类型，如'骑兵'")],
+) -> dict:
+    """计算某武将带某兵种时的阵容战力。"""
+    general = GENERALS.get(general_name)
+    unit = UNITS.get(troop_type)
+    if general is None or unit is None:
+        return {
+            "error": f"未知武将或兵种: {general_name}/{troop_type}，可用武将: {list(GENERALS)}，可用兵种: {list(UNITS)}"
+        }
+    from combat import calc_army_power
+
+    return {"power": calc_army_power(unit, general, troop_type)}
+
+
+@tool
+def get_counter_relation(
+    troop_type: Annotated[str, Field(description="兵种类型，如'骑兵'")],
+) -> dict:
+    """查询某兵种的克制关系：它克制谁、被谁克制。"""
+    from troops import COUNTER, TROOP_TYPES
+
+    counters = COUNTER.get(troop_type, [])
+    countered_by = [t for t in TROOP_TYPES if troop_type in COUNTER.get(t, [])]
+    return {"troop": troop_type, "克制": counters, "被克制": countered_by}
+
+
+TOOLS_FOR_GRAPH = [
+    simulate_matchup,
+    get_unit_info,
+    calc_army_power,
+    get_counter_relation,
+]
 
 
 def call_model(state: MessagesState):
@@ -64,7 +115,6 @@ def call_model(state: MessagesState):
     return {"messages": [response]}
 
 
-# TODO 2: 工具节点
 tool_node = ToolNode(TOOLS_FOR_GRAPH)
 
 
@@ -82,5 +132,7 @@ graph_builder.add_edge(START, "call_model")
 graph_builder.add_conditional_edges(
     "call_model", should_continue, {"tools": "tools", END: END}
 )
-graph_builder.add_edge("tools", "call_model")  # 工具执行完回模型——闭环！
-graph = graph_builder.compile()  # checkpointer 是 2-5b 的事
+graph_builder.add_edge("tools", "call_model")
+
+checkpointer = MemorySaver()
+graph = graph_builder.compile(checkpointer=checkpointer)
