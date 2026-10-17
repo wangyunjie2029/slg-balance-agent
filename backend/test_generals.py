@@ -1,46 +1,18 @@
-from generals import General, calc_general_combat_power
+from data import GENERALS, UNITS
+from generals import calc_general_combat_power
 
-zhangfei = General(
-    general_id="001",
-    name="张飞",
-    faction="蜀汉",
-    rarity=5,
-    force=98,
-    intellect=32,
-    leadership=85,
-    speed=71,
-    politics=15,
-    charm=45,
-    aptitude={"骑兵": "S", "盾兵": "A", "弓兵": "B", "枪兵": "S", "器械": "C"},
-)
+# 兵种
+qibing = UNITS["骑兵"]
+dunbing = UNITS["盾兵"]
+gongbing = UNITS["弓兵"]
+qiangbing = UNITS["枪兵"]
+qixie = UNITS["器械"]
 
-zhugeliang = General(
-    general_id="002",
-    name="诸葛亮",
-    faction="蜀汉",
-    rarity=5,
-    force=25,
-    intellect=99,
-    leadership=78,
-    speed=65,
-    politics=96,
-    charm=92,
-    aptitude={"骑兵": "C", "盾兵": "B", "弓兵": "A", "枪兵": "B", "器械": "S"},
-)
+# 武将
+zhangfei = GENERALS["张飞"]
+zhugeliang = GENERALS["诸葛亮"]
+yuanshao = GENERALS["袁绍"]
 
-yuanshao = General(
-    general_id="003",
-    name="袁绍",
-    faction="群雄",
-    rarity=5,
-    force=62,
-    intellect=71,
-    leadership=80,
-    speed=58,
-    politics=88,
-    charm=90,
-    aptitude={"骑兵": "A", "盾兵": "A", "弓兵": "S", "枪兵": "B", "器械": "B"},
-)
 
 assert (
     calc_general_combat_power(zhangfei, "骑兵") == 89

@@ -9,7 +9,7 @@ from troops import get_aptitude_rate
 
 # ===== 战斗数值常量（战力层拥有，战斗层导入使用）=====
 HP_POOL_FACTOR = 10  # 血池 = (hp + defense) × 此系数
-DAMAGE_FACTOR = 10  # 每回合伤害 = 攻击分 ÷ 此系数 × 克制乘数
+DAMAGE_FACTOR = 2  # 每回合伤害 = 攻击分 ÷ 此系数 × 克制乘数
 
 
 UNIT_BASE_WEIGHTS = {"attack": 1.0, "defense": 1.0, "hp": 0.1}
