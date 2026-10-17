@@ -6,14 +6,19 @@ Step 1 第 5 小步。
 import random
 from dataclasses import dataclass
 
-from combat import calc_army_power
+from combat import (
+    DAMAGE_FACTOR,
+    calc_army_attack,
+    calc_army_health_pool,
+    calc_army_power,
+)
 from generals import General
 from models import UnitStats
 from troops import get_counter_bonus
 
-# ===== 战斗节奏常量 =====
-HP_POOL_FACTOR = 10  # 血池 = 战力 × 此系数（队伍能承受的伤害总量）
-DAMAGE_FACTOR = 10  # 每回合伤害 = 战力 ÷ 此系数 × 克制乘数
+MAX_ROUNDS = 200  # 回合上限，超过判平局（战斗层专属概念，留在本层）
+
+
 MAX_ROUNDS = 200  # 回合上限，超过判平局（防止 while 死循环，对应三战"60回合平"）
 
 
@@ -41,22 +46,23 @@ def simulate_battle(
     damage_jitter: float = 0.0,
 ) -> BattleResult:
     """确定性战斗模拟：A 先手，按回合互相扣血，血池见底者负。"""
-    power_a = calc_army_power(army_a.unit, army_a.general, army_a.troop_type)
-    power_b = calc_army_power(army_b.unit, army_b.general, army_b.troop_type)
-    hp_a = power_a * HP_POOL_FACTOR
-    hp_b = power_b * HP_POOL_FACTOR
+
+    attack_a = calc_army_attack(army_a.unit, army_a.general, army_a.troop_type)
+    attack_b = calc_army_attack(army_b.unit, army_b.general, army_b.troop_type)
+    hp_a = calc_army_health_pool(army_a.unit)
+    hp_b = calc_army_health_pool(army_b.unit)
 
     rounds = 0
     while rounds < MAX_ROUNDS:
         rounds += 1
         damage_a = (
-            power_a
+            attack_a
             / DAMAGE_FACTOR
             * calc_counter_multiplier(army_a.troop_type, army_b.troop_type)
             * random.uniform(1 - damage_jitter, 1 + damage_jitter)
         )
         damage_b = (
-            power_b
+            attack_b
             / DAMAGE_FACTOR
             * calc_counter_multiplier(army_b.troop_type, army_a.troop_type)
             * random.uniform(1 - damage_jitter, 1 + damage_jitter)
