@@ -96,11 +96,22 @@ def get_counter_relation(
     return {"troop": troop_type, "克制": counters, "被克制": countered_by}
 
 
+@tool
+def diagnose_balance_tool() -> dict:
+    """诊断全部兵种的平衡性：跑全兵种对阵矩阵，用 Z-score 检测过强/过弱的兵种。
+    当用户询问'数值平衡吗/哪个兵种太强/需要调整吗'时调用。注意：诊断需要跑
+    20 场模拟，耗时约 1 分钟，属重工具。"""
+    from diagnose import diagnose_balance
+
+    return diagnose_balance()
+
+
 TOOLS_FOR_GRAPH = [
     simulate_matchup,
     get_unit_info,
     calc_army_power,
     get_counter_relation,
+    diagnose_balance_tool,
 ]
 
 
