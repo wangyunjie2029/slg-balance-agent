@@ -7,12 +7,21 @@ import json
 
 from agent import ask_agent_stream
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from llm import chat_stream
 from pydantic import BaseModel
 
 # 创建 FastAPI 应用实例；title/version 会显示在自动生成的接口文档 /docs 里
 app = FastAPI(title="SLG 数值平衡 Agent", version="0.1.0")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # 允许前端来源
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # @app.get("/ping") 是一个"路由装饰器"：
