@@ -58,6 +58,12 @@ def run_case(case: dict) -> dict:
     must_contain = case.get("answer_must_contain", [])
     contains_ok = all(w in answer_text for w in must_contain)
 
+    # 判定 5：禁调工具（黑名单里的工具一次都不许出现）
+    forbidden_tools = case.get("forbidden_tools", [])
+    tools_discipline_ok = not any(
+        name in forbidden_tools for name, _ in collected_tools
+    )
+
     return {
         "case_id": case["case_id"],
         "routing_ok": routing_ok,

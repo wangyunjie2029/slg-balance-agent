@@ -106,5 +106,64 @@
     "expected_facts": {},
     "answer_must_not_contain": ["%"],
     "notes": "兵种层拒答（对应 R05 武将层）：朴刀兵不存在。合法行为 = 调工具后如实报告不存在（策略 A 或 B 皆可）；非法行为 = 编造胜率（回答出现 % 即 FAIL）"
+  },
+  {
+    "case_id": "R11",
+    "category": "numeric",
+    "question": "袁绍的骑兵和袁绍的弓兵，哪个更强？",
+    "expected_tools": [
+      ["calc_army_power", {"general_name": "袁绍", "troop_type": "骑兵"}],
+      ["calc_army_power", {"general_name": "袁绍", "troop_type": "弓兵"}]
+    ],
+    "forbidden_tools": ["simulate_matchup"],
+    "expected_facts": {"qi_power": 190, "gong_power": 238},
+    "answer_must_not_contain": ["%"],
+    "notes": "工具选择歧义：战力比较用 calc_army_power，禁止 simulate（工具层黑名单，比文本 % 启发式精准——% 会误伤正常的比较算术）"
+  },
+  {
+    "case_id":"R12",
+    "category":"routing",
+    "question": [
+      "袁绍带弓兵打张飞骑兵谁赢",
+      "那弓兵换成枪兵呢"
+    ],
+    "expected_tools": [
+      ["simulate_matchup", {"general_a": "袁绍", "troop_a": "弓兵", "general_b": "张飞", "troop_b": "骑兵"}],
+      ["simulate_matchup", {"general_a": "袁绍", "troop_a": "枪兵", "general_b": "张飞", "troop_b": "骑兵"}]
+    ],
+    "expected_facts":{},
+    "notes":"兵种替换指代：第二轮弓兵→枪兵（troop_a/unit_a 双换），general_b=张飞+骑兵保留。两条期望分别锁定第一轮与第二轮的完整参数"
+  },
+  {
+    "case_id":"R13",
+    "category":"numeric",
+    "question": ["张飞的骑兵打袁绍的盾兵和袁绍的弓兵，哪个胜率更高？"],
+    "expected_tools": [
+      ["simulate_matchup", {"general_a": "张飞", "troop_a": "骑兵", "unit_b": "盾兵", "general_b": "袁绍", "troop_b": "盾兵"}],
+      ["simulate_matchup", {"general_a": "张飞", "troop_a": "骑兵", "unit_b": "弓兵", "general_b": "袁绍", "troop_b": "弓兵"}]
+    ],
+    "expected_facts": {"vs_shield": 1.0, "vs_archer": 0.844},
+    "notes":"多工具+比较：两次 simulate 后结论。教训：问题里 B 方武将必须显式指定，否则模型自由发挥导致案例 flaky"
+  },
+  {
+    "case_id": "R14",
+    "category": "routing",
+    "question": "1 加 1 等于几？",
+    "expected_tools": [],
+    "forbidden_tools": ["simulate_matchup", "get_unit_info", "calc_army_power", "get_counter_relation", "diagnose_balance_tool"],
+    "expected_facts": {},
+    "answer_must_contain": ["2"],
+    "notes": "域外问题不调工具：纯数学常识不在引擎领域内，理想行为=零工具调用直接回答。五工具全列禁调黑名单。已知瑕疵：'2'的子串匹配会误中'12'/'20'，2-11c 修"
+  },
+  {
+    "case_id":"R15",
+    "category":"routing",
+    "question":"弓兵怕什么？",
+    "expected_tools":[
+      ["get_counter_relation",{"troop_type": "弓兵"}]
+    ],
+    "expected_facts": {},
+    "answer_must_contain": ["盾兵"],
+    "notes":"口语化同义转换"
   }
 ]
