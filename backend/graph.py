@@ -65,9 +65,7 @@ def get_unit_info(
     return asdict(unit)  # dataclass 一行转 dict
 
 
-tool
-
-
+@tool
 def calc_army_power(
     general_name: Annotated[str, Field(description="武将名，如'张飞'")],
     troop_type: Annotated[str, Field(description="兵种类型，如'骑兵'")],
@@ -115,6 +113,13 @@ TOOLS_FOR_GRAPH = [
 ]
 
 
+SYSTEM_PROMPT = (
+    "你是 SLG 数值平衡助手。涉及对战/战力/胜率的问题必须调用工具获取真实数据，"
+    "禁止凭记忆编造数字。解释兵种克制关系时，必须先调用 get_counter_relation 工具核实，"
+    "禁止凭常识推断克制；未核实克制关系时，要明确说明'克制关系未核实'。"
+)
+
+
 def call_model(state: MessagesState):
     llm = ChatOpenAI(
         model="deepseek-chat",
@@ -122,7 +127,8 @@ def call_model(state: MessagesState):
         openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
     )
     model_with_tools = llm.bind_tools(TOOLS_FOR_GRAPH)
-    response = model_with_tools.invoke(state["messages"])
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + state["messages"]
+    response = model_with_tools.invoke(messages)
     return {"messages": [response]}
 
 
