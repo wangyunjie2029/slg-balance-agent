@@ -104,6 +104,14 @@ def diagnose_balance_tool() -> dict:
     return diagnose_balance()
 
 
+@tool
+def diagnose_balance_tool() -> dict:
+    """诊断全部兵种的平衡性：……"""
+    from diagnose import diagnose_balance
+
+    return diagnose_balance()
+
+
 TOOLS_FOR_GRAPH = [
     simulate_matchup,
     get_unit_info,
@@ -125,6 +133,8 @@ def call_model(state: MessagesState):
         model="deepseek-chat",
         openai_api_base="https://api.deepseek.com",
         openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
+        timeout=30,  # 单次调用 30 秒超时，防止流被无限挂起
+        max_retries=2,  # 失败自动重试 2 次（SDK 内置指数退避）
     )
     model_with_tools = llm.bind_tools(TOOLS_FOR_GRAPH)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + state["messages"]
