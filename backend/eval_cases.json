@@ -1,0 +1,52 @@
+[
+  {
+    "case_id": "R01",
+    "category": "routing",
+    "question": "张飞的骑兵打诸葛亮的器械谁赢，胜率多少",
+    "expected_tools": [
+      ["simulate_matchup", {"unit_a": "骑兵", "general_a": "张飞", "unit_b": "器械", "general_b": "诸葛亮"}]
+    ],
+    "expected_facts": {"win_rate_a": 1.0},
+    "notes": "基础对战：工具路由 + 胜率真值双验证（win_rate_a 实跑后填）"
+  },
+  {
+    "case_id": "R02",
+    "category": "routing",
+    "question": ["张飞的骑兵打诸葛亮的器械谁赢", "那换成袁绍的器械呢"],
+    "expected_tools": [
+      ["simulate_matchup", {"general_b": "袁绍"}]
+    ],
+    "expected_facts": {},
+    "notes": "多轮指代：第二轮 general_b 必须解析为袁绍（runner 需支持列表 question）"
+  },
+  {
+    "case_id": "R03",
+    "category": "routing",
+    "question": "骑兵克制弓兵吗",
+    "expected_tools": [
+      ["get_counter_relation", {"troop_type": "骑兵"}]
+    ],
+    "expected_facts": {},
+    "notes": "陷阱题：克制不成立，必须先查证且不得断言克（质量层面 2-11d 细判）"
+  },
+  {
+    "case_id": "R04",
+    "category": "numeric",
+    "question": "盾兵的数值是多少",
+    "expected_tools": [
+      ["get_unit_info", {"unit_name": "盾兵"}]
+    ],
+    "expected_facts": {},
+    "notes": "数值查询：answer 需含盾兵真实攻/防/血（数字匹配待你实跑后定策略）"
+  },
+  {
+    "case_id": "R05",
+    "category": "routing",
+    "question": "吕布带骑兵打张飞的骑兵谁赢",
+    "expected_tools": [],
+    "expected_facts": {},
+    "answer_must_not_contain": ["%"],
+    "notes": "负面案例：布局无吕布，必须不编造（空 expected_tools = 不应成功调用 simulate）"
+    
+  }
+]
