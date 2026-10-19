@@ -112,12 +112,18 @@ def diagnose_balance_tool() -> dict:
     return diagnose_balance()
 
 
+def boom_tool() -> dict:
+    """测试用：调用后必定抛出异常。"""
+    raise RuntimeError("这是一次故意的测试爆炸")
+
+
 TOOLS_FOR_GRAPH = [
     simulate_matchup,
     get_unit_info,
     calc_army_power,
     get_counter_relation,
     diagnose_balance_tool,
+    boom_tool,
 ]
 
 
@@ -142,7 +148,7 @@ def call_model(state: MessagesState):
     return {"messages": [response]}
 
 
-tool_node = ToolNode(TOOLS_FOR_GRAPH)
+tool_node = ToolNode(TOOLS_FOR_GRAPH, handle_tool_errors=True)
 
 
 def should_continue(state: MessagesState) -> str:

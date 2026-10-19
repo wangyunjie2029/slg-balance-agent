@@ -106,6 +106,7 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
     from graph import graph
 
     rounds = 0  # ← 自己的业务计数器
+    last_tool_sig = None  # ← 新增：上一次 tool_call 的签名
     try:
         for chunk in graph.stream(
             {"messages": [("user", question)]},
@@ -129,13 +130,34 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
                             }
                             return
                         for tc in msg.tool_calls:
+                            # ★ 新增：重复调用检测
+                            sig = (
+                                tc["name"],
+                                json.dumps(
+                                    tc["args"], sort_keys=True, ensure_ascii=False
+                                ),
+                            )
+                            if sig == last_tool_sig:
+                                yield {
+                                    "event": "answer",
+                                    "data": {
+                                        "text": "检测到连续重复调用同一工具且参数相同，已停止以节省资源。"
+                                        "如果确实需要重试，请换个问法或补充信息。"
+                                    },
+                                }
+                                return
+                            last_tool_sig = sig
                             yield {
                                 "event": "tool_call",
                                 "data": {"tool": tc["name"], "args": tc["args"]},
                             }
-                    # tools 节点：引擎结果
+                    # tools 节点：引擎结果（容忍非 JSON 内容——如 ToolNode 的纯文本错误消息）
                     elif msg.type == "tool":
-                        yield {"event": "tool_result", "data": json.loads(msg.content)}
+                        try:
+                            data = json.loads(msg.content)
+                        except (json.JSONDecodeError, TypeError):
+                            data = {"raw": str(msg.content)}
+                        yield {"event": "tool_result", "data": data}
                     # 模型最终回答
                     else:
                         yield {"event": "answer", "data": {"text": msg.content}}
