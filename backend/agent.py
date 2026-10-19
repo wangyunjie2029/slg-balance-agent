@@ -168,3 +168,19 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
                 "text": "抱歉，这个问题我推演了太多步仍未得出结论，已停止以节省资源。请尝试把问题拆小一点。"
             },
         }
+    except GraphRecursionError:
+        yield {
+            "event": "answer",
+            "data": {"text": "抱歉，这个问题我推演了太多步仍未得出结论……"},
+        }
+    except Exception as e:  # ← 新增：兜底一切
+        print(f"[agent] 未预期的异常: {type(e).__name__}: {e}")  # 服务端留痕
+        yield {
+            "event": "answer",
+            "data": {
+                "text": (
+                    "军师暂时无法处理这个问题（服务波动），请稍后重试。"
+                    "若持续失败，可换个问法或联系维护者。"
+                )
+            },
+        }
