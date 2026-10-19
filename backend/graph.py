@@ -3,6 +3,7 @@ LangGraph 状态图：等价迁移 agent.py 的手写循环。
 """
 
 import os
+import sqlite3
 from typing import Annotated
 
 from agent import TOOLS, dispatch  # 复用已有工具定义与执行
@@ -12,6 +13,7 @@ from langchain_core.messages import AnyMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
@@ -167,5 +169,6 @@ graph_builder.add_conditional_edges(
 )
 graph_builder.add_edge("tools", "call_model")
 
-checkpointer = MemorySaver()
+conn = sqlite3.connect("checkpoints.db", check_same_thread=False)
+checkpointer = SqliteSaver(conn)
 graph = graph_builder.compile(checkpointer=checkpointer)

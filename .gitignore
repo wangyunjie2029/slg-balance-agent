@@ -21,3 +21,6 @@ npm-debug.log*
 *.log
 .idea/
 .vscode/
+
+# ===== 运行时数据 =====
+backend/checkpoints.db*
