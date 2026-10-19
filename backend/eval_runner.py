@@ -54,6 +54,10 @@ def run_case(case: dict) -> dict:
     forbidden = case.get("answer_must_not_contain", [])
     negative_ok = not any(bad in answer_text for bad in forbidden)
 
+    # 判定 4：正向包含（必含词，全部命中才算过）
+    must_contain = case.get("answer_must_contain", [])
+    contains_ok = all(w in answer_text for w in must_contain)
+
     return {
         "case_id": case["case_id"],
         "routing_ok": routing_ok,
@@ -62,6 +66,7 @@ def run_case(case: dict) -> dict:
         "missing": missing,
         "tools_called": [t for t, _ in collected_tools],
         "answer_excerpt": answer_text[:80],
+        "contains_ok": contains_ok,
     }
 
 
@@ -71,7 +76,12 @@ if __name__ == "__main__":
         r = run_case(c)
         mark = (
             "PASS"
-            if (r["routing_ok"] and r["numeric_ok"] and r["negative_ok"])
+            if (
+                r["routing_ok"]
+                and r["numeric_ok"]
+                and r["negative_ok"]
+                and r["contains_ok"]
+            )
             else "FAIL"
         )
         print(

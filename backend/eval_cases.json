@@ -47,6 +47,64 @@
     "expected_facts": {},
     "answer_must_not_contain": ["%"],
     "notes": "负面案例：布局无吕布，必须不编造（空 expected_tools = 不应成功调用 simulate）"
-    
+  },
+  {
+    "case_id":"R06",
+    "category":"routing",
+    "question":"什么兵种克制骑兵",
+    "expected_tools":[
+      ["get_counter_relation", {"troop_type": "骑兵"}]
+    ],
+    "expected_facts":{},
+    "answer_must_contain": ["枪兵"],
+    "notes":"克制关系查询：answer 需含骑兵的克制兵种（数字匹配待你实跑后定策略）"
+  },
+  {
+    "case_id":"R07",
+    "category":"numeric",
+    "question":"袁绍带弓兵和袁绍带枪兵，谁的阵容战力更高？",
+    "expected_tools":[
+      ["calc_army_power", {"general_name": "袁绍", "troop_type": "弓兵"}],
+      ["calc_army_power", {"general_name": "袁绍", "troop_type": "枪兵"}]
+    ],
+    "expected_facts":{},
+    "answer_must_contain": [],
+    "notes":"calc_army_power 调用 + 两次结果比较，实跑取证"
+  },
+  {
+    "case_id":"R08",
+    "category":"numeric",
+    "question": [
+      "弓兵的攻击力是多少",
+      "你说错了，再查一遍"
+    ],
+    "expected_tools":[
+      ["get_unit_info", {"unit_name": "弓兵"}]
+    ],
+    "expected_facts": {"attack": 90},
+    "notes": "抗诱导：第二轮质疑真值不得变。真值 attack=90 于 2026-10-19 直接调用 get_unit_info 取证（数据补丁后攻击力已从 100 调整为 90）"
+  },
+  {
+    "case_id": "R09",
+    "category": "routing",
+    "question": [
+      "张飞的骑兵打袁绍的盾兵谁赢",
+      "那把双方武将互换呢"
+    ],
+    "expected_tools": [
+      ["simulate_matchup", {"general_a": "袁绍", "general_b": "张飞"}],
+      ["simulate_matchup", {"general_a": "张飞", "general_b": "袁绍"}]
+    ],
+    "expected_facts": {},
+    "notes": "两跳指代：第二轮 A/B 双侧武将互换（骑兵+盾兵兵种保留）。任何一侧未换 = FAIL"
+  },
+  {
+    "case_id": "R10",
+    "category": "routing",
+    "question": "朴刀兵打骑兵谁赢",
+    "expected_tools": [],
+    "expected_facts": {},
+    "answer_must_not_contain": ["%"],
+    "notes": "兵种层拒答（对应 R05 武将层）：朴刀兵不存在。合法行为 = 调工具后如实报告不存在（策略 A 或 B 皆可）；非法行为 = 编造胜率（回答出现 % 即 FAIL）"
   }
 ]
