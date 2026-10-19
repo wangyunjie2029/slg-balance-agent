@@ -6,9 +6,9 @@ import json
 
 from battle import Army
 from data import GENERALS, UNITS
+from langgraph.errors import GraphRecursionError
 from mc_sim import run_mc_sim
 
-# TODO 2: 工具说明书（JSON Schema——给 LLM 看的"使用手册"）
 TOOLS = [
     {
         "type": "function",
@@ -100,24 +100,49 @@ def ask_agent(question: str) -> str:
         # 循环继续：带着工具结果再问模型，直到它给出最终回答
 
 
-def ask_agent_stream(question: str, thread_id: str = "default"):
-    """流式 Agent（LangGraph 版）：消费 graph.stream，映射为事件序列。"""
+# 函数签名加一个参数（给调用方灵活控制的口子）
+def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int = 10):
+    """流式 Agent（LangGraph 版）。max_rounds：工具调用轮数上限。"""
     from graph import graph
 
-    for chunk in graph.stream(
-        {"messages": [("user", question)]},
-        stream_mode="updates",
-        config={"configurable": {"thread_id": thread_id}},  # ← 新增：存档槽编号
-    ):
-        for node_name, update in chunk.items():
-            for msg in update["messages"]:  # ← 遍历本节点产出的所有消息，不再只取[-1]
-                if getattr(msg, "tool_calls", None):
-                    for tc in msg.tool_calls:
-                        yield {
-                            "event": "tool_call",
-                            "data": {"tool": tc["name"], "args": tc["args"]},
-                        }
-                elif msg.type == "tool":
-                    yield {"event": "tool_result", "data": json.loads(msg.content)}
-                else:
-                    yield {"event": "answer", "data": {"text": msg.content}}
+    rounds = 0  # ← 自己的业务计数器
+    try:
+        for chunk in graph.stream(
+            {"messages": [("user", question)]},
+            stream_mode="updates",
+            config={
+                "configurable": {"thread_id": thread_id},
+                "recursion_limit": max_rounds * 2 + 2,
+            },
+        ):
+            for node_name, update in chunk.items():
+                for msg in update["messages"]:
+                    # call_model 节点：计数 + 判上限 + 分发事件
+                    if getattr(msg, "tool_calls", None):
+                        rounds += 1
+                        if rounds > max_rounds:
+                            yield {
+                                "event": "answer",
+                                "data": {
+                                    "text": "已达推理步数上限，请缩小问题范围后重试。"
+                                },
+                            }
+                            return
+                        for tc in msg.tool_calls:
+                            yield {
+                                "event": "tool_call",
+                                "data": {"tool": tc["name"], "args": tc["args"]},
+                            }
+                    # tools 节点：引擎结果
+                    elif msg.type == "tool":
+                        yield {"event": "tool_result", "data": json.loads(msg.content)}
+                    # 模型最终回答
+                    else:
+                        yield {"event": "answer", "data": {"text": msg.content}}
+    except GraphRecursionError:
+        yield {
+            "event": "answer",
+            "data": {
+                "text": "抱歉，这个问题我推演了太多步仍未得出结论，已停止以节省资源。请尝试把问题拆小一点。"
+            },
+        }
