@@ -39,7 +39,7 @@ LLM 只负责理解意图和编排工具；所有数字来自确定性引擎，�
 首次安装：
 
 ​```powershell
-git clone https://github.com/Ekko7777777/slg-balance-agent.git
+git clone https://github.com/wangyunjie2029/slg-balance-agent.git
 cd slg-balance-agent\backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1

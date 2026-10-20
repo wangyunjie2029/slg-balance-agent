@@ -1,4 +1,4 @@
 @echo off
-cd /d E:\codex\slg-balance-agent\frontend
+cd /d "%~dp0frontend"
 echo Frontend running at http://localhost:3000
 call npm run dev
