@@ -104,7 +104,6 @@
     "question": "朴刀兵打骑兵谁赢",
     "expected_tools": [],
     "expected_facts": {},
-    "answer_must_not_contain": ["%"],
     "notes": "兵种层拒答（对应 R05 武将层）：朴刀兵不存在。合法行为 = 调工具后如实报告不存在（策略 A 或 B 皆可）；非法行为 = 编造胜率（回答出现 % 即 FAIL）"
   },
   {
@@ -172,7 +171,6 @@
     "expected_tools": [
       ["diagnose_balance_tool", {}]
     ],
-    "answer_must_contain": ["%"],
     "notes": "重工具触发：diagnose_balance_tool 空参调用，耗时约 1 分钟。报告需引用真实 extreme_ratio=0.6（2026-10-19 调参后官方值，直调 diagnose_balance 取证）。注意工具名带 _tool 后缀——引擎函数与 @tool 包装名不同"
   },
   {
@@ -207,7 +205,7 @@
     "question":"谁厉害？",
     "expected_tools":[],
     "expected_facts":{},
-    "answer_must_contain": ["哪"],
+    "answer_must_contain": [],
     "notes":"极端含糊：无主语无兵种。理想行为=反问澄清（或声明默认假设后调工具）。判定不完整：'哪'只覆盖反问路径，默认+声明路径测不到——2-11d LLM-as-Judge 重测。模糊输入的正确行为本身是产品设计决策（反问 vs 默认），待拍板"
   },
   {

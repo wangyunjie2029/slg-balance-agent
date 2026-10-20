@@ -6,6 +6,7 @@ import sqlite3
 import uuid
 
 from agent import ask_agent_stream
+from eval_judge import judge_answer
 
 
 def extract_percentages(text: str) -> list[float]:
@@ -90,6 +91,11 @@ def run_case(case: dict, run_index: int = 0) -> dict:
     tools_discipline_ok = not any(
         name in forbidden_tools for name, _ in collected_tools
     )
+    # Judge 评分（多轮案例评最后一轮的回答）
+    judge_q = (
+        case["question"] if isinstance(case["question"], str) else case["question"][-1]
+    )
+    judge = judge_answer(judge_q, answer_text)
 
     return {
         "case_id": case["case_id"],
@@ -105,6 +111,7 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         and negative_ok
         and contains_ok
         and tools_discipline_ok,
+        "judge": judge,
     }
 
 
@@ -141,4 +148,13 @@ if __name__ == "__main__":
         )
         print(
             f"[{mark}] {r['case_id']} | {stab} ({r['pass_rate']:.0%}) | tools={r['tools_called']}"
+        )
+        print(f"       answer: {r['answer_excerpt']}...")
+        avg = (
+            r["judge"]["faithfulness"]
+            + r["judge"]["completeness"]
+            + r["judge"]["appropriateness"]
+        ) / 3
+        print(
+            f"       judge: {avg:.1f}/10 | 忠实 {r['judge']['faithfulness']} 引用 {r['judge']['completeness']} 得体 {r['judge']['appropriateness']}"
         )
