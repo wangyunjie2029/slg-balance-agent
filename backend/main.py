@@ -18,7 +18,10 @@ app = FastAPI(title="SLG 数值平衡 Agent", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 允许前端来源
+    allow_origins=[
+        "http://localhost:3000",
+    ],  # 本地前端来源（精确匹配）
+    allow_origin_regex=r"https://.*\.onrender\.com",  # Render 部署的前端子域（正则匹配）
     allow_methods=["*"],
     allow_headers=["*"],
 )
