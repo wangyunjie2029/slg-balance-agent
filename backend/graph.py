@@ -149,7 +149,12 @@ def call_model(state: MessagesState):
     )
     model_with_tools = llm.bind_tools(TOOLS_FOR_GRAPH)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + state["messages"]
-    response = model_with_tools.invoke(messages)
+    response = model_with_tools.invoke(
+        messages,
+    )
+    # 2-12 可观测：官方 token 计数直出（比字符数精确，2-13 压缩基线用）
+    usage = getattr(response, "usage_metadata", None) or {}
+    print(f"[tokens] 输入 {usage.get('input_tokens', '?')} / 输出 {usage.get('output_tokens', '?')}")
     return {"messages": [response]}
 
 

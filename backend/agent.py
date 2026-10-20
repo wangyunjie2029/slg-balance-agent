@@ -6,6 +6,7 @@ import json
 
 from battle import Army
 from data import GENERALS, UNITS
+from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from mc_sim import run_mc_sim
 
@@ -105,6 +106,9 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
     """流式 Agent（LangGraph 版）。max_rounds：工具调用轮数上限。"""
     from graph import graph
 
+    handler = CallbackHandler()  # 会话 = 存档槽
+    # graph.stream 的 config 里追加 callbacks：
+    config = {"configurable": {...}, "recursion_limit": ..., "callbacks": [handler]}
     rounds = 0  # ← 自己的业务计数器
     last_tool_sig = None  # ← 新增：上一次 tool_call 的签名
     try:
@@ -114,6 +118,11 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
             config={
                 "configurable": {"thread_id": thread_id},
                 "recursion_limit": max_rounds * 2 + 2,
+                "callbacks": [handler],
+                "metadata": {  # ← 新版绑定会话的方式
+                    "langfuse_session_id": thread_id,
+                    "langfuse_user_id": "local-dev",
+                },
             },
         ):
             for node_name, update in chunk.items():
