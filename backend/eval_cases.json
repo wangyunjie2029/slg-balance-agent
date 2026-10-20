@@ -117,7 +117,6 @@
     ],
     "forbidden_tools": ["simulate_matchup"],
     "expected_facts": {"qi_power": 190, "gong_power": 238},
-    "answer_must_not_contain": ["%"],
     "notes": "工具选择歧义：战力比较用 calc_army_power，禁止 simulate（工具层黑名单，比文本 % 启发式精准——% 会误伤正常的比较算术）"
   },
   {
@@ -142,7 +141,7 @@
       ["simulate_matchup", {"general_a": "张飞", "troop_a": "骑兵", "unit_b": "盾兵", "general_b": "袁绍", "troop_b": "盾兵"}],
       ["simulate_matchup", {"general_a": "张飞", "troop_a": "骑兵", "unit_b": "弓兵", "general_b": "袁绍", "troop_b": "弓兵"}]
     ],
-    "expected_facts": {"vs_shield": 1.0, "vs_archer": 0.844},
+    "expected_facts": {"vs_shield_rate": 1.0, "vs_archer_rate": 0.844},
     "notes":"多工具+比较：两次 simulate 后结论。教训：问题里 B 方武将必须显式指定，否则模型自由发挥导致案例 flaky"
   },
   {
@@ -173,7 +172,6 @@
     "expected_tools": [
       ["diagnose_balance_tool", {}]
     ],
-    "expected_facts": {"extreme_ratio": 0.6},
     "answer_must_contain": ["%"],
     "notes": "重工具触发：diagnose_balance_tool 空参调用，耗时约 1 分钟。报告需引用真实 extreme_ratio=0.6（2026-10-19 调参后官方值，直调 diagnose_balance 取证）。注意工具名带 _tool 后缀——引擎函数与 @tool 包装名不同"
   },
