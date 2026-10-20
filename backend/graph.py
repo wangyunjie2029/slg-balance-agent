@@ -9,7 +9,13 @@ from typing import Annotated
 from agent import TOOLS, dispatch  # 复用已有工具定义与执行
 from data import GENERALS, UNITS
 from dotenv import load_dotenv
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import (
+    AIMessage,
+    AnyMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
@@ -18,6 +24,18 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from pydantic import Field
+
+
+def build_window(messages: list, max_messages: int = 12) -> list:
+    """裁剪发往模型的视图：保留 system + 最近 max_messages 条，且不破坏 tool 配对。"""
+    if len(messages) <= max_messages:
+        return messages
+    window = messages[-max_messages:]
+    # 配对保护：window 开头如果落在 tool_call 中段，向后扩展到配对完整
+    while window and isinstance(window[0], ToolMessage):
+        window = window[1:]  # 丢弃孤立的 ToolMessage（它的调用方 AIMessage 已在窗口外）
+    return window
+
 
 load_dotenv()  # graph.py 自己读 .env，别依赖别的文件先执行
 
@@ -140,6 +158,8 @@ SYSTEM_PROMPT = (
 
 
 def call_model(state: MessagesState):
+    window = build_window(state["messages"], max_messages=12)
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + window
     llm = ChatOpenAI(
         model="deepseek-chat",
         openai_api_base="https://api.deepseek.com",
@@ -154,7 +174,9 @@ def call_model(state: MessagesState):
     )
     # 2-12 可观测：官方 token 计数直出（比字符数精确，2-13 压缩基线用）
     usage = getattr(response, "usage_metadata", None) or {}
-    print(f"[tokens] 输入 {usage.get('input_tokens', '?')} / 输出 {usage.get('output_tokens', '?')}")
+    print(
+        f"[tokens] 输入 {usage.get('input_tokens', '?')} / 输出 {usage.get('output_tokens', '?')}"
+    )
     return {"messages": [response]}
 
 
