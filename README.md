@@ -5,6 +5,13 @@
 
 > 评测驱动的改进闭环实测：工具路由正确率 **0% → 100%**（详见评测体系）
 
+## 🌐 在线体验
+
+- **前端**：https://slg-balance-agent-frontend.onrender.com
+- **后端 API**：https://slg-balance-agent.onrender.com/ping
+
+（免费档冷启动约 1 分钟：首次访问若转圈，是在唤醒服务器——再刷新一次即可）
+
 ## ✨ 功能亮点
 
 - **确定性引擎**：兵种 / 克制 / 武将 / 战力 / 战斗 / 蒙特卡洛六大模块，
