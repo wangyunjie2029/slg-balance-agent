@@ -33,7 +33,11 @@ COMBAT_WEIGHTS = {"force": 0.4, "intellect": 0.3, "leadership": 0.3}
 
 
 def calc_general_base(general: "General") -> float:
-    """武将战斗基数 = 按 COMBAT_WEIGHTS 加权的六维（不含适性）。"""
+    """武将战斗基数 = 按 COMBAT_WEIGHTS 加权的三维（force/intellect/leadership）。
+
+    注意：speed / politics / charm 暂不参与 —— speed 目前只作为展示属性，
+    politics / charm 是内政维度预留。要加进来就改 COMBAT_WEIGHTS，这里不用动。
+    """
     # 把你现在 calc_general_combat_power 里的 ① 段循环搬过来
     base = 0.0
     for attr_name, weight in COMBAT_WEIGHTS.items():

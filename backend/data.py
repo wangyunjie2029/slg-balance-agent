@@ -103,4 +103,65 @@ GENERALS = {
         charm=90,
         aptitude={"骑兵": "A", "盾兵": "A", "弓兵": "S", "枪兵": "B", "器械": "B"},
     ),
+    # ===== 第二批：三个战力基数几乎相等的武将（≈88），用于制造「均势对局」 =====
+    # 计算依据：基数 = force*0.4 + intellect*0.3 + leadership*0.3
+    #   关羽 38.8+21.3+28.5 = 88.6
+    #   赵云 38.4+22.8+27.3 = 88.5
+    #   张辽 36.8+23.4+27.9 = 88.1
+    # 三者互打理论上接近五五开 —— 这是评测区分度的来源。
+    # 之前只有张飞(74.3)/诸葛亮(63.1)/袁绍(70.1)，差距太大，组合必然一边倒。
+    "关羽": General(
+        general_id="004",
+        name="关羽",
+        faction="蜀汉",
+        rarity=5,
+        force=97,
+        intellect=71,
+        leadership=95,
+        speed=68,
+        politics=62,
+        charm=93,
+        aptitude={"骑兵": "S", "盾兵": "A", "弓兵": "C", "枪兵": "S", "器械": "B"},
+    ),
+    "赵云": General(
+        general_id="005",
+        name="赵云",
+        faction="蜀汉",
+        rarity=5,
+        force=96,
+        intellect=76,
+        leadership=91,
+        speed=91,  # 速度给高：机动型，与关羽的「重装」形成差异
+        politics=65,
+        charm=92,
+        aptitude={"骑兵": "S", "盾兵": "A", "弓兵": "A", "枪兵": "B", "器械": "C"},
+    ),
+    "张辽": General(
+        general_id="006",
+        name="张辽",
+        faction="曹魏",
+        rarity=5,
+        force=92,
+        intellect=78,
+        leadership=93,
+        speed=82,
+        politics=58,
+        charm=70,
+        aptitude={"骑兵": "S", "盾兵": "A", "弓兵": "B", "枪兵": "A", "器械": "B"},
+    ),
+    # 智力型对照：与诸葛亮同为智将，但武力更高（63 vs 25），所以基数高一档，
+    # 用来测「阵容强度差一档时模型还能不能说准」。
+    "司马懿": General(
+        general_id="007",
+        name="司马懿",
+        faction="曹魏",
+        rarity=5,
+        force=63,
+        intellect=96,
+        leadership=88,
+        speed=62,
+        politics=93,
+        charm=85,
+        aptitude={"骑兵": "B", "盾兵": "A", "弓兵": "S", "枪兵": "C", "器械": "S"},
+    ),
 }

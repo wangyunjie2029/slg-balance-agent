@@ -6,7 +6,7 @@ from data import GENERALS, UNITS
 from graph import calc_army_power, get_counter_relation, simulate_matchup
 from troops import TROOP_TYPES
 
-GENERALS_LIST = ["张飞", "诸葛亮", "袁绍"]
+GENERALS_LIST = list(GENERALS.keys())  # 自动跟随 data.py，加武将不用改这里
 BATCH_N = 300  # 取证模拟场数（生成期用小 n 提速；真值容差 ±0.05）
 
 

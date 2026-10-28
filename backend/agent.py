@@ -6,6 +6,8 @@ import json
 
 from battle import Army
 from data import GENERALS, UNITS
+from fallback import fallback_answer, record_failure, record_success, should_fallback
+from infra import guarded_tool, is_error, log_event
 from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from mc_sim import run_mc_sim
@@ -43,27 +45,53 @@ TOOLS = [
 ]
 
 
+@guarded_tool("simulate_matchup", timeout=30.0)
+def _simulate_matchup(args: dict) -> dict:
+    """真实模拟。被 guarded_tool 包住：
+    - 超过 30s     → {"error_code": "TIMEOUT"}
+    - 武将名不存在 → {"error_code": "BAD_ARGUMENT"}
+    - 其他异常     → {"error_code": "INTERNAL"}
+    返回给模型的是「能读懂的失败描述」，不是栈回溯。
+    """
+    army_a = Army(
+        unit=UNITS[args["unit_a"]],
+        general=GENERALS[args["general_a"]],
+        troop_type=args["troop_a"],
+    )
+    army_b = Army(
+        unit=UNITS[args["unit_b"]],
+        general=GENERALS[args["general_b"]],
+        troop_type=args["troop_b"],
+    )
+    r = run_mc_sim(army_a, army_b, n=500, damage_jitter=0.2, seed=42)
+    return {
+        "wins_a": r.wins_a,
+        "wins_b": r.wins_b,
+        "draws": r.draws,
+        "win_rate_a": r.win_rate_a,
+    }
+
+
 def dispatch(name: str, args: dict) -> dict:
     """执行真实引擎函数——LLM 只能'点菜'，做菜的是这里。"""
     if name == "simulate_matchup":
-        army_a = Army(
-            unit=UNITS[args["unit_a"]],
-            general=GENERALS[args["general_a"]],
-            troop_type=args["troop_a"],
+        result = _simulate_matchup(args)
+        # 每次工具调用都留痕：成功/失败、耗时、错误码。
+        # 这是 trace 的源头，也是「工具失败率」指标的数据来源。
+        log_event(
+            "tool",
+            tool=name,
+            args=args,
+            ok=not is_error(result),
+            ms=result.get("_elapsed_ms"),
+            error_code=result.get("error_code"),
         )
-        army_b = Army(
-            unit=UNITS[args["unit_b"]],
-            general=GENERALS[args["general_b"]],
-            troop_type=args["troop_b"],
-        )
-        r = run_mc_sim(army_a, army_b, n=500, damage_jitter=0.2, seed=42)
-        return {
-            "wins_a": r.wins_a,
-            "wins_b": r.wins_b,
-            "draws": r.draws,
-            "win_rate_a": r.win_rate_a,
-        }
-    return {"error": f"未知工具: {name}"}
+        return result
+    return {
+        "error": f"未知工具: {name}",
+        "error_code": "BAD_ARGUMENT",
+        "suggestion": "可用工具只有 simulate_matchup",
+    }
 
 
 def ask_agent(question: str) -> str:
@@ -107,8 +135,6 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
     from graph import graph
 
     handler = CallbackHandler()  # 会话 = 存档槽
-    # graph.stream 的 config 里追加 callbacks：
-    config = {"configurable": {...}, "recursion_limit": ..., "callbacks": [handler]}
     rounds = 0  # ← 自己的业务计数器
     last_tool_sig = None  # ← 新增：上一次 tool_call 的签名
     try:
@@ -169,27 +195,31 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
                         yield {"event": "tool_result", "data": data}
                     # 模型最终回答
                     else:
+                        record_success(thread_id)  # 正常收尾 → 清零失败计数
                         yield {"event": "answer", "data": {"text": msg.content}}
     except GraphRecursionError:
+        # 注意：这不属于"服务故障"，不该计入降级计数——
+        # 模型是好的，只是我们主动刹车了。
         yield {
             "event": "answer",
             "data": {
                 "text": "抱歉，这个问题我推演了太多步仍未得出结论，已停止以节省资源。请尝试把问题拆小一点。"
             },
         }
-    except GraphRecursionError:
-        yield {
-            "event": "answer",
-            "data": {"text": "抱歉，这个问题我推演了太多步仍未得出结论……"},
-        }
-    except Exception as e:  # ← 新增：兜底一切
-        print(f"[agent] 未预期的异常: {type(e).__name__}: {e}")  # 服务端留痕
-        yield {
-            "event": "answer",
-            "data": {
-                "text": (
-                    "军师暂时无法处理这个问题（服务波动），请稍后重试。"
-                    "若持续失败，可换个问法或联系维护者。"
-                )
-            },
-        }
+    except Exception as e:  # ← 兜底一切：LLM 连续失败 / 网络中断 / 解析异常
+        n = record_failure(thread_id)
+        print(f"[agent] 异常（第 {n} 次连续失败）: {type(e).__name__}: {e}")
+
+        # 连续失败达到阈值 → 走确定性兜底，而不是继续让用户看"请重试"
+        if should_fallback(thread_id):
+            text = fallback_answer(question)
+            degraded = True
+            log_event("fallback", thread_id=thread_id, failures=n, raw_error=str(e)[:120])
+        else:
+            text = (
+                "军师暂时无法处理这个问题（服务波动），请稍后重试。"
+                "若持续失败，可换个问法或联系维护者。"
+            )
+            degraded = False
+
+        yield {"event": "answer", "data": {"text": text, "degraded": degraded}}

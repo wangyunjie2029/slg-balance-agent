@@ -35,10 +35,11 @@ def cleanup_eval_threads(db_path: str = "checkpoints.db"):
 
 
 def run_case(case: dict, run_index: int = 0) -> dict:
-    thread_id = f"eval-{case['case_id']}-run{run_index}"
     collected_tools = []  # [(tool_name, args), ...]
+    error_codes = []  # ← 新增：工具返回的错误码（归因用）
     answer_text = ""
-    thread_id = f"eval-{case['case_id']}-{uuid.uuid4().hex[:8]}"  # 每次运行全新存档槽
+    # 每次运行用全新存档槽：K 次跑必须互相隔离，否则第二次会命中第一次的记忆
+    thread_id = f"eval-{case['case_id']}-{uuid.uuid4().hex[:8]}"
 
     # ★ 归一化：字符串 → 单元素列表（两种形态统一成一种，后面只写一份循环）
     questions = (
@@ -49,6 +50,11 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         for evt in ask_agent_stream(q, thread_id=thread_id, max_rounds=10):
             if evt["event"] == "tool_call":
                 collected_tools.append((evt["data"]["tool"], evt["data"]["args"]))
+            elif evt["event"] == "tool_result":
+                # ★ 新增：把工具层的结构化错误码收集起来，供失败归因使用
+                data = evt["data"]
+                if isinstance(data, dict) and data.get("error_code"):
+                    error_codes.append(data["error_code"])
             elif evt["event"] == "answer":
                 answer_text = evt["data"]["text"]  # 多轮时自然留下最后一轮的回答
 
@@ -104,6 +110,10 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         "negative_ok": negative_ok,
         "missing": missing,
         "tools_called": [t for t, _ in collected_tools],
+        # ★ 新增三个字段：归因模块需要 args 明细才能区分「工具选错」和「参数填错」
+        "tool_calls_detail": collected_tools,
+        "error_codes": error_codes,
+        "steps": len(collected_tools),
         "answer_excerpt": answer_text[:80],
         "contains_ok": contains_ok,
         "overall_ok": routing_ok
@@ -115,18 +125,48 @@ def run_case(case: dict, run_index: int = 0) -> dict:
     }
 
 
-K = 3  # 每案例运行次数
+K = 3  # 默认每案例运行次数
+JUDGE_PASS_THRESHOLD = 6.0  # Judge 三项均分及格线（strict 口径用）
 
 
-def run_case_stable(case: dict) -> dict:
-    results = [run_case(case, run_index=i) for i in range(K)]
+def _judge_avg(r: dict) -> float:
+    """Judge 三项均分。缺字段或解析失败按 0 算。"""
+    j = r.get("judge") or {}
+    vals = [j.get("faithfulness"), j.get("completeness"), j.get("appropriateness")]
+    nums = [v for v in vals if isinstance(v, (int, float))]
+    return sum(nums) / len(nums) if nums else 0.0
+
+
+def run_case_stable(case: dict, k: int = K) -> dict:
+    """跑 k 次，给出稳定 / 严格两种口径。
+
+    - stable_pass：k 次里过半通过（规则判定）
+    - strict_pass：k 次里过半「规则过 且 Judge 均分 ≥ 阈值」
+      规则能测"对不对"，Judge 才能测"说得好不好"。只看规则会出现
+      "数字抄对但解释全是脑补"也算通过的情况——所以必须分开统计。
+
+    注意：过半阈值用 (k+1)//2，k=1 时是 1。原代码写死 >=2，
+    传 k=1 会永远判失败。
+    """
+    results = [run_case(case, run_index=i) for i in range(k)]
+    need = max(1, (k + 1) // 2)
+
     passes = sum(1 for r in results if r["overall_ok"])
+    strict_passes = sum(
+        1
+        for r in results
+        if r["overall_ok"] and _judge_avg(r) >= JUDGE_PASS_THRESHOLD
+    )
+
     return {
         **results[0],
-        "stable_pass": passes >= 2,
-        "flaky": 0 < passes < K,
-        "pass_rate": passes / K,
-        "runs_detail": [  # ← 新增：每次运行的死因
+        "stable_pass": passes >= need,
+        "strict_pass": strict_passes >= need,
+        "flaky": 0 < passes < k,
+        "pass_rate": passes / k,
+        "strict_rate": strict_passes / k,
+        "judge_avg": round(sum(_judge_avg(r) for r in results) / k, 2),
+        "runs_detail": [  # 每次运行的死因
             (r["overall_ok"], r["missing"], r["tools_called"]) for r in results
         ],
     }

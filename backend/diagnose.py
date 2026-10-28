@@ -3,6 +3,7 @@
 """
 
 from battle import Army
+from config import DAMAGE_JITTER, SIM_SEED
 from data import UNITS
 from generals import General
 from mc_sim import run_mc_sim
@@ -44,7 +45,7 @@ def calc_matchup_matrix(n: int = 300) -> dict[str, dict[str, float]]:
             if a == b:
                 continue
             r = run_mc_sim(
-                build_army(a), build_army(b), n=n, damage_jitter=0.35, seed=42
+                build_army(a), build_army(b), n=n, damage_jitter=DAMAGE_JITTER, seed=SIM_SEED
             )
             matrix[a][b] = r.win_rate_a
     return matrix

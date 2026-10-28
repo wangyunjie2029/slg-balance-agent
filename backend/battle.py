@@ -16,9 +16,6 @@ from generals import General
 from models import UnitStats
 from troops import get_counter_bonus
 
-MAX_ROUNDS = 200  # 回合上限，超过判平局（战斗层专属概念，留在本层）
-
-
 MAX_ROUNDS = 200  # 回合上限，超过判平局（防止 while 死循环，对应三战"60回合平"）
 
 
