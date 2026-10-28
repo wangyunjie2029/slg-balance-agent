@@ -1,0 +1,43 @@
+{
+  "engine": {
+    "sim_n": 500,
+    "samples": 30,
+    "single_ms_mean": 5.79,
+    "single_ms_p50": 5.79,
+    "single_ms_p95": 5.97,
+    "seq_qps": 172.9,
+    "thread_workers": 8,
+    "thread_qps": 170.0,
+    "thread_speedup": 0.98,
+    "note": "加速比 < 1 说明受 GIL / CPU 核数限制；模拟是纯 Python 计算，多线程不会线性扩展，这正是要用多进程而非多线程扩容的依据。"
+  },
+  "event_loop": {
+    "direct_call": {
+      "mode": "direct_call",
+      "work_ms": 45.5,
+      "heartbeat_samples": 8,
+      "heartbeat_max_gap_ms": 45.7,
+      "heartbeat_p95_gap_ms": 45.7
+    },
+    "to_thread": {
+      "mode": "to_thread",
+      "work_ms": 47.4,
+      "heartbeat_samples": 15,
+      "heartbeat_max_gap_ms": 16.3,
+      "heartbeat_p95_gap_ms": 15.6
+    },
+    "blocked_ratio": 0.36,
+    "verdict": "直接调用时心跳被拉长到与工作时长同量级，说明整个事件循环被独占；改为 to_thread 后心跳恢复正常。这就是本项目 SSE 与工具层都必须离开事件循环的原因。"
+  },
+  "api": {
+    "endpoint": "/ping",
+    "concurrency": 8,
+    "requests": 40,
+    "qps": 924.1,
+    "p50_ms": 7.08,
+    "p95_ms": 13.06,
+    "max_ms": 14.93,
+    "errors": 0,
+    "note": "这条只测框架与中间件开销，不含 LLM。聊天接口的延迟由模型主导（首 token 1~2s），所以「并发上限」必须分「服务开销」和「模型配额」两层说，合成一个数字是耍流氓。"
+  }
+}

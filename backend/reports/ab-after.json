@@ -1,0 +1,391 @@
+{
+  "generated_at": "2026-10-28 11:16:19",
+  "cases_path": "eval_cases_ab.json",
+  "k": 1,
+  "config": {
+    "model": "deepseek-chat",
+    "max_rounds": 10,
+    "window_size": 12,
+    "sim_n": 500,
+    "damage_jitter": 0.35,
+    "sim_seed": 42,
+    "tool_timeout": 30.0,
+    "rate_limit": "20/0.5per sec",
+    "auth_enabled": false,
+    "failure_threshold": 2,
+    "api_key_set": true
+  },
+  "total": 52,
+  "passed": 51,
+  "pass_rate": 0.981,
+  "strict_passed": 51,
+  "strict_pass_rate": 0.981,
+  "avg_judge": 9.02,
+  "flaky_cases": [],
+  "stable_fail_cases": [
+    "E208"
+  ],
+  "avg_steps": 1.35,
+  "failure_by_kind": [
+    [
+      "BAD_ARGUMENT",
+      4
+    ],
+    [
+      "INTENT_MISUNDERSTAND",
+      1
+    ],
+    [
+      "LOW_QUALITY",
+      1
+    ]
+  ],
+  "failure_by_owner": [
+    [
+      "tool",
+      4
+    ],
+    [
+      "prompt",
+      2
+    ]
+  ],
+  "top_action": "先改 tool（影响 4 条）",
+  "stratified": {
+    "extreme": {
+      "total": 0,
+      "passed": 0,
+      "pass_rate": null
+    },
+    "balanced": {
+      "total": 6,
+      "passed": 6,
+      "pass_rate": 1.0
+    },
+    "compare": {
+      "total": 0,
+      "passed": 0,
+      "pass_rate": null
+    },
+    "other": {
+      "total": 46,
+      "passed": 45,
+      "pass_rate": 0.978
+    }
+  },
+  "cases": [
+    {
+      "case_id": "E101",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E102",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E103",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E104",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E105",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E106",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E107",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E108",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E109",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E110",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E111",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E112",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E201",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E202",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E203",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E204",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E205",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E206",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E207",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E208",
+      "passed": false,
+      "primary": "INTENT_MISUNDERSTAND",
+      "evidence": "expected tools but none called"
+    },
+    {
+      "case_id": "E209",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E210",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E211",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E212",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E301",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E302",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E303",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E304",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E305",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E306",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E307",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E308",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E309",
+      "passed": true,
+      "primary": "LOW_QUALITY",
+      "evidence": "low dims=['completeness', 'appropriateness']"
+    },
+    {
+      "case_id": "E310",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E401",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E402",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E403",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E404",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E405",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E406",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E501",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E502",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E503",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E504",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E505",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E506",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G008",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G011",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G022",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G023",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G039",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G059",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    }
+  ],
+  "rendered": "通过率 98.1%（51/52）\n\n失败类型分布：\n  BAD_ARGUMENT             4  → JSON Schema / 参数描述\n  INTENT_MISUNDERSTAND     1  → system prompt\n  LOW_QUALITY              1  → prompt / 数据依据\n\n按组件聚合（修复优先级）：\n  tool             4 条\n  prompt           2 条\n\n结论：先改 tool（影响 4 条）\n\n失败明细：\n  [INTENT_MISUNDERSTAND] E208 — expected tools but none called\n       修法：在 system prompt 里强化「涉及数据必须调工具」；或加 few-shot 示例\n  [LOW_QUALITY] E309 — low dims=['completeness', 'appropriateness']\n       修法：要求因果解释必须引用工具字段；禁止用通用常识解释机制\n  [BAD_ARGUMENT] E401 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E402 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E405 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E406 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束"
+}

@@ -1,0 +1,47 @@
+{
+  "change": "SYSTEM_PROMPT: 明确区分「拒绝越狱指令」与「拒绝用户的问题」",
+  "subset": "eval_cases_ab.json（52 条：E 系列 46 + 均势 6），k=1",
+  "before": {
+    "rules": [
+      49,
+      52
+    ],
+    "rules_rate": 0.942,
+    "strict": [
+      45,
+      52
+    ],
+    "strict_rate": 0.865,
+    "judge_avg": 8.42,
+    "avg_steps": 1.29
+  },
+  "after": {
+    "rules": [
+      51,
+      52
+    ],
+    "rules_rate": 0.981,
+    "strict": [
+      51,
+      52
+    ],
+    "strict_rate": 0.981,
+    "judge_avg": 9.02,
+    "avg_steps": 1.35
+  },
+  "fixed": [
+    "E210",
+    "E211"
+  ],
+  "regressed": [],
+  "recheck": {
+    "case_id": "E208",
+    "pass_rate": 0.6666666666666666,
+    "note": "用例侧修正（题面补兵种 + 负面断言加否定语境豁免）后 k=3 复测，2/3 通过，flaky"
+  },
+  "notes": [
+    "E210 的失败是用例断言错误（负面词命中模型自己的辟谣句），不是模型问题",
+    "E208 同时有题面缺陷（未给兵种，模型无法模拟）与断言误杀",
+    "改 prompt 未引入任何回归"
+  ]
+}

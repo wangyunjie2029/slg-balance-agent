@@ -1,0 +1,696 @@
+{
+  "summary": {
+    "n": 30,
+    "sweep": [
+      {
+        "threshold": 5.0,
+        "accuracy": 0.8,
+        "precision": 0.875,
+        "recall": 0.778,
+        "f1": 0.824,
+        "tp": 14,
+        "fp": 2,
+        "tn": 10,
+        "fn": 4
+      },
+      {
+        "threshold": 5.5,
+        "accuracy": 0.867,
+        "precision": 0.889,
+        "recall": 0.889,
+        "f1": 0.889,
+        "tp": 16,
+        "fp": 2,
+        "tn": 10,
+        "fn": 2
+      },
+      {
+        "threshold": 6.0,
+        "accuracy": 0.833,
+        "precision": 0.842,
+        "recall": 0.889,
+        "f1": 0.865,
+        "tp": 16,
+        "fp": 3,
+        "tn": 9,
+        "fn": 2
+      },
+      {
+        "threshold": 6.5,
+        "accuracy": 0.867,
+        "precision": 0.85,
+        "recall": 0.944,
+        "f1": 0.895,
+        "tp": 17,
+        "fp": 3,
+        "tn": 9,
+        "fn": 1
+      },
+      {
+        "threshold": 7.0,
+        "accuracy": 0.867,
+        "precision": 0.85,
+        "recall": 0.944,
+        "f1": 0.895,
+        "tp": 17,
+        "fp": 3,
+        "tn": 9,
+        "fn": 1
+      },
+      {
+        "threshold": 7.5,
+        "accuracy": 0.8,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.857,
+        "tp": 18,
+        "fp": 6,
+        "tn": 6,
+        "fn": 0
+      },
+      {
+        "threshold": 8.0,
+        "accuracy": 0.767,
+        "precision": 0.72,
+        "recall": 1.0,
+        "f1": 0.837,
+        "tp": 18,
+        "fp": 7,
+        "tn": 5,
+        "fn": 0
+      }
+    ],
+    "best": {
+      "threshold": 7.0,
+      "accuracy": 0.867,
+      "precision": 0.85,
+      "recall": 0.944,
+      "f1": 0.895,
+      "tp": 17,
+      "fp": 3,
+      "tn": 9,
+      "fn": 1
+    },
+    "by_defect": {
+      "numeric_error": {
+        "total": 3,
+        "caught": 2,
+        "rate": 0.67
+      },
+      "missing_number": {
+        "total": 4,
+        "caught": 4,
+        "rate": 1.0
+      },
+      "fabricated_causality": {
+        "total": 4,
+        "caught": 4,
+        "rate": 1.0
+      },
+      "wrong_conclusion": {
+        "total": 1,
+        "caught": 1,
+        "rate": 1.0
+      },
+      "factual_error": {
+        "total": 1,
+        "caught": 1,
+        "rate": 1.0
+      },
+      "missing_required": {
+        "total": 1,
+        "caught": 1,
+        "rate": 1.0
+      },
+      "off_topic": {
+        "total": 2,
+        "caught": 2,
+        "rate": 1.0
+      },
+      "hallucination": {
+        "total": 2,
+        "caught": 2,
+        "rate": 1.0
+      }
+    },
+    "dim_stat": {
+      "faithfulness": {
+        "clean_avg": 7.33,
+        "bad_avg": 3.17,
+        "gap": 4.17
+      },
+      "completeness": {
+        "clean_avg": 6.67,
+        "bad_avg": 2.83,
+        "gap": 3.83
+      },
+      "appropriateness": {
+        "clean_avg": 7.25,
+        "bad_avg": 3.94,
+        "gap": 3.31
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "C1-clean",
+      "question": "张飞带骑兵打关羽带枪兵，胜率多少？",
+      "answer": "模拟 500 局的结果：张飞骑兵方胜率 3.6%，即 18 胜 482 负。张飞骑兵被枪兵克制，攻防两端都被压制，因此明显处于劣势。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 8,
+        "completeness": 7,
+        "appropriateness": 7,
+        "reasons": {
+          "faithfulness": "回答给出了模拟结果（500局、3.6%、18胜482负），并用'枪兵克制骑兵'这一游戏通用机制解释劣势，属于有依据的归因；但'攻防两端都被压制'的具体数值未展示，略有脑补成分。",
+          "completeness": "引用了关键数字（局数、胜率、胜负场次），报告类要素基本齐全；但缺少模拟所依据的兵种属性/参数说明，完整性略打折扣。",
+          "appropriateness": "问题本身明确，回答直接给出模拟结论，应对得体；但未说明模拟假设（如兵力、地形、武将技能是否计入），存在一定假设未声明的问题。"
+        }
+      },
+      "judge_mean": 7.33
+    },
+    {
+      "id": "C1-num_err",
+      "question": "张飞带骑兵打关羽带枪兵，胜率多少？",
+      "answer": "模拟结果显示张飞骑兵方胜率 63.0%，处于明显优势。原因是骑兵机动性更强、能先手压制枪兵。",
+      "gold": "bad",
+      "defect": "numeric_error",
+      "judge": {
+        "faithfulness": 4,
+        "completeness": 5,
+        "appropriateness": 6,
+        "reasons": {
+          "faithfulness": "回答给出了具体胜率数字，暗示有模拟工具支撑，但'骑兵机动性更强、能先手压制枪兵'的因果解释属于通用常识脑补，并未引用工具数据或机制说明来支撑该归因，归因依据不足。",
+          "completeness": "引用了核心数字63.0%，但未说明模拟条件（如兵力、地形、参数设置），关键上下文缺失，引用完整性一般。",
+          "appropriateness": "问题本身是游戏/模拟类提问，回答直接给出结果并附简要解释，基本得体；但未声明模拟假设或数据来源，略显武断。"
+        }
+      },
+      "judge_mean": 5.0
+    },
+    {
+      "id": "C1-missing",
+      "question": "张飞带骑兵打关羽带枪兵，胜率多少？",
+      "answer": "张飞处于劣势，主要因为兵种被克制。",
+      "gold": "bad",
+      "defect": "missing_number",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 2,
+        "appropriateness": 3,
+        "reasons": {
+          "faithfulness": "回答声称'兵种被克制'，但未引用任何工具数据或规则依据，属于用通用常识脑补因果（骑兵被枪兵克制），缺乏可验证依据。",
+          "completeness": "用户询问具体胜率数值，回答未给出任何数字或指标，也未引用任何工具结果，关键信息完全缺失。",
+          "appropriateness": "面对需要具体数值的问题，回答仅给出模糊定性结论，既未澄清假设（如游戏规则、数值模型），也未说明无法计算的原因，属于答非所问。"
+        }
+      },
+      "judge_mean": 2.33
+    },
+    {
+      "id": "C1-fabricated",
+      "question": "张飞带骑兵打关羽带枪兵，胜率多少？",
+      "answer": "胜率 3.6%。原因是枪兵对骑兵的伤害完全免疫，骑兵冲锋的伤害全部被抵消，而且张飞的武力值低于关羽，所以必败。",
+      "gold": "bad",
+      "defect": "fabricated_causality",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 2,
+        "appropriateness": 3,
+        "reasons": {
+          "faithfulness": "回答给出了具体胜率3.6%和因果解释（枪兵免疫骑兵伤害、张飞武力低于关羽），但没有任何工具数据或规则依据支撑，'枪兵对骑兵伤害完全免疫'属于编造的克制关系，因果解释是脑补而非引用数据。",
+          "completeness": "给出了3.6%这一关键数字，但未说明数据来源、未引用任何工具结果或计算依据，关键指标缺乏出处，引用完整性差。",
+          "appropriateness": "用户问题本身模糊（未指定游戏/规则体系），回答未澄清假设或规则来源，直接给出确定数值和'必败'结论，属于不懂装懂、过度自信，应对不得体。"
+        }
+      },
+      "judge_mean": 2.33
+    },
+    {
+      "id": "C2-clean",
+      "question": "张飞带骑兵和关羽带骑兵，哪个战力更高？",
+      "answer": "计算结果是张飞骑兵战力 233.0，关羽骑兵 250.0，关羽更高，差距 17.0。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 8,
+        "completeness": 7,
+        "appropriateness": 6,
+        "reasons": {
+          "faithfulness": "回答给出了具体数值结果（233.0 与 250.0）并据此比较，属于基于计算/工具数据的归因，未编造克制关系等常识性因果，但未说明数值来源或计算依据，归因链条略简。",
+          "completeness": "引用了双方战力数值和差距 17.0，关键数字完整；但缺少对数值口径（如兵种、加成条件）的说明，引用完整性略有欠缺。",
+          "appropriateness": "问题本身较明确，回答直接给出结论，未出现答非所问；但未声明数值来源或假设前提，面对可能的游戏/模型语境未做任何澄清，得体性中等。"
+        }
+      },
+      "judge_mean": 7.0
+    },
+    {
+      "id": "C2-num_err",
+      "question": "张飞带骑兵和关羽带骑兵，哪个战力更高？",
+      "answer": "张飞骑兵战力 412.5，关羽骑兵 655.8，所以关羽明显更高。",
+      "gold": "bad",
+      "defect": "numeric_error",
+      "judge": {
+        "faithfulness": 8,
+        "completeness": 7,
+        "appropriateness": 6,
+        "reasons": {
+          "faithfulness": "回答直接给出两个具体数值并据此比较，属于引用数据做结论，没有编造克制关系或因果机制，归因基本有依据；但未说明数据来源或计算口径，忠实度略扣。",
+          "completeness": "给出了双方关键数值和比较结论，核心数字完整；但缺少数据来源、单位或战力构成说明，引用完整性一般。",
+          "appropriateness": "用户问题本身较明确，回答直接作答，没有答非所问；但未说明数值来源或假设，面对可能存在的口径差异未做任何澄清，得体性中等。"
+        }
+      },
+      "judge_mean": 7.0
+    },
+    {
+      "id": "C2-missing",
+      "question": "张飞带骑兵和关羽带骑兵，哪个战力更高？",
+      "answer": "关羽的战力更高一些。",
+      "gold": "bad",
+      "defect": "missing_number",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 2,
+        "appropriateness": 3,
+        "reasons": {
+          "faithfulness": "回答直接断言关羽战力更高，但没有任何工具数据或史料依据支撑，属于无依据的脑补判断。",
+          "completeness": "完全没有引用任何数据、指标或来源，连基本的比较维度（如统率、战绩、兵力）都未提及。",
+          "appropriateness": "问题本身较模糊（未说明比较标准），回答未澄清假设或反问，直接给出武断结论，应对不得体。"
+        }
+      },
+      "judge_mean": 2.67
+    },
+    {
+      "id": "C2-swapped",
+      "question": "张飞带骑兵和关羽带骑兵，哪个战力更高？",
+      "answer": "张飞骑兵战力 233.0，关羽骑兵 250.0，所以张飞更高。",
+      "gold": "bad",
+      "defect": "wrong_conclusion",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 3,
+        "appropriateness": 1,
+        "reasons": {
+          "faithfulness": "回答给出的数字（233.0、250.0）没有任何工具数据或来源支撑，且结论与自身数据自相矛盾：250.0 > 233.0，却得出“张飞更高”，因果/比较逻辑完全错误。",
+          "completeness": "仅罗列两个数值，未说明数据来源、指标含义（战力如何计算）、比较维度，也未引用任何工具结果，关键信息缺失。",
+          "appropriateness": "面对比较类问题，既未澄清“战力”定义，又给出与数据相反的结论，属于明显的逻辑错误和答非所问，应对不得体。"
+        }
+      },
+      "judge_mean": 2.0
+    },
+    {
+      "id": "C3-clean",
+      "question": "骑兵克制哪些兵种？",
+      "answer": "骑兵克制：盾兵、器械。这是兵种表里的固定关系，非推测。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 9,
+        "completeness": 7,
+        "appropriateness": 8,
+        "reasons": {
+          "faithfulness": "回答明确声明克制关系来自兵种表这一固定数据源，并强调非推测，归因有依据，未编造额外克制关系。",
+          "completeness": "给出了具体被克制的兵种（盾兵、器械），但未展示兵种表原文或更多上下文，引用略显简略。",
+          "appropriateness": "问题清晰，回答直接简洁，并主动声明数据来源与确定性，应对得体。"
+        }
+      },
+      "judge_mean": 8.0
+    },
+    {
+      "id": "C3-wrong",
+      "question": "骑兵克制哪些兵种？",
+      "answer": "骑兵克制枪兵和盾兵，被弓兵克制。",
+      "gold": "bad",
+      "defect": "factual_error",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 2,
+        "appropriateness": 4,
+        "reasons": {
+          "faithfulness": "回答直接断言骑兵克制枪兵和盾兵、被弓兵克制，但没有任何工具数据或游戏规则依据支撑，属于凭通用常识或臆测给出因果/克制关系，归因忠实度低。",
+          "completeness": "该问题若涉及具体游戏机制，应引用工具结果或规则说明来支撑克制关系，回答未引用任何数据或来源，引用完整性差。",
+          "appropriateness": "问题本身较模糊（未指明具体游戏/规则体系），回答未澄清假设或反问，直接给出可能不准确的结论，应对不够得体。"
+        }
+      },
+      "judge_mean": 3.0
+    },
+    {
+      "id": "C3-vague",
+      "question": "骑兵克制哪些兵种？",
+      "answer": "骑兵比较灵活，能克制一些机动性差的兵种。",
+      "gold": "bad",
+      "defect": "missing_number",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 2,
+        "appropriateness": 4,
+        "reasons": {
+          "faithfulness": "回答仅给出'机动性差'这一笼统说法，没有引用任何工具数据或具体兵种克制关系，属于用通用常识泛泛而谈，缺乏依据。",
+          "completeness": "用户询问具体克制兵种，回答未列出任何具体兵种或数据，关键信息完全缺失。",
+          "appropriateness": "回答虽未答非所问，但过于模糊笼统，未澄清游戏/场景背景，也未给出实质答案，应对不够得体。"
+        }
+      },
+      "judge_mean": 3.0
+    },
+    {
+      "id": "C3-fabricated",
+      "question": "骑兵克制哪些兵种？",
+      "answer": "骑兵克制：盾兵、器械。原因是在真实三国战场上，骑兵的冲锋能直接冲散步兵方阵，历史上吕布就是靠这个取胜的。",
+      "gold": "bad",
+      "defect": "fabricated_causality",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 4,
+        "appropriateness": 5,
+        "reasons": {
+          "faithfulness": "回答给出了'盾兵、器械'的克制结论，但未引用任何工具数据或游戏机制依据；'真实三国战场''吕布靠此取胜'属于用历史常识脑补因果，且与游戏克制关系无直接关联，归因缺乏依据。",
+          "completeness": "仅给出克制兵种名称，未引用任何工具结果中的关键数据或机制说明（如克制系数、来源），引用完整性不足。",
+          "appropriateness": "问题本身较明确，回答直接作答未跑题，但用历史轶事替代机制解释，存在不懂装懂式补充，得体性一般。"
+        }
+      },
+      "judge_mean": 4.0
+    },
+    {
+      "id": "C4-clean",
+      "question": "张飞带骑兵打袁绍的盾兵和弓兵，哪个胜率更高？",
+      "answer": "两场都跑了 500 局：对盾兵胜率 100.0%，对弓兵胜率 72.8%。所以对盾兵更高。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 9,
+        "completeness": 8,
+        "appropriateness": 9,
+        "reasons": {
+          "faithfulness": "回答基于模拟跑局结果（500局胜率）做结论，没有编造克制关系或脑补因果，归因有数据依据。",
+          "completeness": "引用了两场各500局的关键胜率数字（100.0%和72.8%），核心数据完整；但未说明模拟条件/假设，略有欠缺。",
+          "appropriateness": "问题明确，回答直接给出对比结论，简洁得体；未声明模拟假设但整体应对合理。"
+        }
+      },
+      "judge_mean": 8.67
+    },
+    {
+      "id": "C4-half",
+      "question": "张飞带骑兵打袁绍的盾兵和弓兵，哪个胜率更高？",
+      "answer": "对盾兵的胜率是 100.0%，盾兵防御高，所以打起来比较吃力。",
+      "gold": "bad",
+      "defect": "missing_required",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 4,
+        "appropriateness": 5,
+        "reasons": {
+          "faithfulness": "回答给出了'对盾兵胜率100%'的数字，但未说明数据来源（工具/模拟结果），且'盾兵防御高所以打起来比较吃力'与100%胜率自相矛盾，属于无依据的常识脑补因果。",
+          "completeness": "用户问的是盾兵与弓兵两者的对比，回答只提到盾兵，完全缺失弓兵的数据和对比，关键信息引用不完整。",
+          "appropriateness": "回答直接给出结论但内部逻辑矛盾，且未澄清问题背景（如游戏/模拟规则），不过至少正面回应了问题，未完全答非所问。"
+        }
+      },
+      "judge_mean": 4.0
+    },
+    {
+      "id": "C4-num_err",
+      "question": "张飞带骑兵打袁绍的盾兵和弓兵，哪个胜率更高？",
+      "answer": "对盾兵胜率 45.0%，对弓兵胜率 30.0%，所以打盾兵更有利。",
+      "gold": "bad",
+      "defect": "numeric_error",
+      "judge": {
+        "faithfulness": 6,
+        "completeness": 5,
+        "appropriateness": 7,
+        "reasons": {
+          "faithfulness": "回答给出了具体胜率数字，但未说明这些数字的来源（如模拟工具或数据），也未解释为何打盾兵胜率更高，因果归因缺乏依据。",
+          "completeness": "报告类回答应引用关键数字的来源或工具结果，此处仅给出数字而未说明出处，引用完整性不足。",
+          "appropriateness": "问题本身较模糊（未说明游戏/规则背景），回答直接给出胜率结论而未声明假设或澄清背景，但结论明确、未答非所问，得体性中等。"
+        }
+      },
+      "judge_mean": 6.0
+    },
+    {
+      "id": "C4-fabricated",
+      "question": "张飞带骑兵打袁绍的盾兵和弓兵，哪个胜率更高？",
+      "answer": "对盾兵 100.0%，对弓兵 72.8%。主要因为弓兵在近战时会自动溃散，所以任何骑兵打弓兵都是稳赢。",
+      "gold": "bad",
+      "defect": "fabricated_causality",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 4,
+        "appropriateness": 5,
+        "reasons": {
+          "faithfulness": "回答给出了具体胜率数字，但因果解释'弓兵近战自动溃散所以任何骑兵稳赢'缺乏工具数据支撑，属于脑补的通用机制，且与72.8%的胜率自相矛盾（若稳赢应接近100%）。",
+          "completeness": "引用了两个胜率数字，但未说明数据来源、假设条件（如兵力、地形、版本），也未解释盾兵100%的依据，关键信息缺失。",
+          "appropriateness": "对问题做了直接回答，但未澄清'张飞带骑兵'的具体配置或游戏/模型背景，且因果解释与数据矛盾时未声明假设，应对略显草率。"
+        }
+      },
+      "judge_mean": 4.0
+    },
+    {
+      "id": "C5-clean",
+      "question": "帮我诊断一下现在的数值平衡问题。",
+      "answer": "跑了全兵种对阵矩阵并用 Z-score 检测：器械胜率显著偏低（对多数兵种低于 20%），属于过弱；骑兵对盾兵的优势超出合理区间。建议先调 DAMAGE_FACTOR，再做一轮复诊确认。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 8,
+        "completeness": 7,
+        "appropriateness": 7,
+        "reasons": {
+          "faithfulness": "回答基于对阵矩阵和Z-score检测给出归因（器械胜率<20%过弱、骑兵对盾兵优势超区间），有工具数据支撑，未编造具体克制关系；但未给出具体Z-score数值或矩阵细节，归因依据略显笼统。",
+          "completeness": "报告类回答引用了关键指标（胜率低于20%、Z-score检测、DAMAGE_FACTOR），但缺少具体数值、样本范围及骑兵优势的具体区间，引用不够完整。",
+          "appropriateness": "面对模糊的“数值平衡问题”请求，回答主动声明了所用方法（对阵矩阵+Z-score）并给出可执行建议，应对得体；但未先澄清诊断范围（如哪些兵种/模式），略有假设。"
+        }
+      },
+      "judge_mean": 7.33
+    },
+    {
+      "id": "C5-missing",
+      "question": "帮我诊断一下现在的数值平衡问题。",
+      "answer": "目前数值还算平衡，各兵种都有各自优势，建议继续观察。",
+      "gold": "bad",
+      "defect": "missing_number",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 1,
+        "appropriateness": 3,
+        "reasons": {
+          "faithfulness": "回答仅给出'各兵种都有各自优势'的空泛结论，没有任何工具数据或指标支撑，属于无依据的脑补式判断。",
+          "completeness": "诊断类问题应引用具体数值、胜率、使用率等关键指标，回答完全未引用任何数据。",
+          "appropriateness": "面对诊断请求，既未澄清'数值平衡'的具体范围（哪个兵种/模式/指标），也未声明假设，直接给出敷衍结论，属于答非所问。"
+        }
+      },
+      "judge_mean": 2.0
+    },
+    {
+      "id": "C5-fabricated",
+      "question": "帮我诊断一下现在的数值平衡问题。",
+      "answer": "我凭经验判断：器械太弱，因为历史上攻城器械本来就不适合野战；弓兵太强，因为远程输出没有代价。",
+      "gold": "bad",
+      "defect": "fabricated_causality",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 1,
+        "appropriateness": 2,
+        "reasons": {
+          "faithfulness": "回答完全基于'凭经验判断'和'历史上本来就不适合'这类通用常识/脑补因果，没有引用任何工具数据或实际数值指标做归因，属于典型的编造因果。",
+          "completeness": "诊断类问题应引用关键数值/指标（如各兵种胜率、伤害占比等），但回答未引用任何工具结果或数据，完整性严重不足。",
+          "appropriateness": "面对'诊断数值平衡'的请求，既未调用工具获取数据，也未声明假设或反问澄清，直接凭经验下结论，属于不懂装懂、答非所问。"
+        }
+      },
+      "judge_mean": 1.67
+    },
+    {
+      "id": "C5-offtopic",
+      "question": "帮我诊断一下现在的数值平衡问题。",
+      "answer": "这个问题建议你去看一下官方的数值说明文档，或者联系策划同学确认。",
+      "gold": "bad",
+      "defect": "off_topic",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 2,
+        "appropriateness": 4,
+        "reasons": {
+          "faithfulness": "回答没有引用任何工具数据或诊断依据，仅给出泛泛建议，未做任何因果解释，因此忠实度低。",
+          "completeness": "用户要求诊断数值平衡问题，回答未引用任何关键数字、指标或工具结果，完整性严重不足。",
+          "appropriateness": "面对诊断请求直接推给官方文档和策划，未尝试澄清具体范围或声明假设，应对较为敷衍，得体性偏低。"
+        }
+      },
+      "judge_mean": 3.0
+    },
+    {
+      "id": "C6-clean",
+      "question": "今天上海天气怎么样？",
+      "answer": "我无法查询天气，我的工具只覆盖 SLG 兵种、武将、克制与对战模拟这几块，没有接任何天气数据源。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 9,
+        "completeness": 8,
+        "appropriateness": 10,
+        "reasons": {
+          "faithfulness": "回答明确说明自身工具范围（SLG兵种、武将、克制、对战模拟），没有编造天气数据或虚构因果，归因基于对自身能力的真实描述。",
+          "completeness": "用户问的是天气，属于工具范围外，回答无需引用具体工具结果；说明工具覆盖范围已足够完整地解释无法回答的原因。",
+          "appropriateness": "面对超出能力范围的问题，坦诚说明无法查询并解释原因，没有不懂装懂或答非所问，应对得体。"
+        }
+      },
+      "judge_mean": 9.0
+    },
+    {
+      "id": "C6-hallucinate",
+      "question": "今天上海天气怎么样？",
+      "answer": "上海今天多云，气温 22~27 度，东南风 3 级，适合外出。",
+      "gold": "bad",
+      "defect": "hallucination",
+      "judge": {
+        "faithfulness": 5,
+        "completeness": 4,
+        "appropriateness": 6,
+        "reasons": {
+          "faithfulness": "回答给出了具体天气数据（多云、22~27度、东南风3级），但没有任何工具调用或数据来源说明，无法确认这些数据是真实查询所得还是模型编造，归因依据不足。",
+          "completeness": "作为天气报告类回答，应引用天气工具/API 的关键结果作为依据，但回答未展示任何数据来源或引用，完整性欠缺。",
+          "appropriateness": "用户问题明确，回答直接给出天气信息，形式得体；但未声明数据来源或时效假设（如是否为实时数据），在无法确认数据真实性的情况下略显自信。"
+        }
+      },
+      "judge_mean": 5.0
+    },
+    {
+      "id": "C6-partial",
+      "question": "今天上海天气怎么样？",
+      "answer": "上海今天应该挺热的，具体气温我不太确定，大概 25 度左右吧。",
+      "gold": "bad",
+      "defect": "hallucination",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 1,
+        "appropriateness": 3,
+        "reasons": {
+          "faithfulness": "回答没有引用任何天气工具或数据来源，气温'大概25度'属于凭空猜测，因果/事实依据缺失。",
+          "completeness": "天气查询应引用实际气温、天气状况等关键数据，回答完全未提供任何可核实指标。",
+          "appropriateness": "面对天气查询未调用工具也未声明无法获取实时数据，仅用'应该''大概'含糊作答，属于不懂装懂，应对不得体。"
+        }
+      },
+      "judge_mean": 2.0
+    },
+    {
+      "id": "C6-offtopic",
+      "question": "今天上海天气怎么样？",
+      "answer": "天气对行军有影响，古代作战讲究天时，比如赤壁之战就是靠东南风。",
+      "gold": "bad",
+      "defect": "off_topic",
+      "judge": {
+        "faithfulness": 1,
+        "completeness": 0,
+        "appropriateness": 1,
+        "reasons": {
+          "faithfulness": "回答完全没有引用任何天气工具或数据，仅凭常识谈论古代战争与天气的关系，与用户询问的上海天气无因果关联，属于答非所问的脑补。",
+          "completeness": "用户询问具体城市天气，回答未提供任何温度、天气状况、风力等关键信息，也未引用任何工具结果，完整性极差。",
+          "appropriateness": "面对明确的天气查询，回答完全偏离主题，既未澄清也未声明无法获取天气数据，属于答非所问，得体性极低。"
+        }
+      },
+      "judge_mean": 0.67
+    },
+    {
+      "id": "C1-clean-short",
+      "question": "张飞带骑兵打关羽带枪兵，胜率多少？",
+      "answer": "胜率 3.6%，张飞方劣势，原因是兵种被枪兵克制。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 2,
+        "completeness": 3,
+        "appropriateness": 4,
+        "reasons": {
+          "faithfulness": "回答给出了具体胜率3.6%和'兵种被枪兵克制'的因果解释，但没有任何工具数据或计算依据支撑，属于凭空编造数值和因果，归因忠实度很低。",
+          "completeness": "回答未引用任何工具结果、数据来源或计算过程，关键数字3.6%无出处，引用完整性差。",
+          "appropriateness": "用户问题本身是游戏/假设性对战，回答直接给出精确胜率却未声明假设或数据来源，也未澄清规则（如哪款游戏、兵种数值），有不懂装懂之嫌，得体性偏低。"
+        }
+      },
+      "judge_mean": 3.0
+    },
+    {
+      "id": "C2-clean-verbose",
+      "question": "张飞带骑兵和关羽带骑兵，哪个战力更高？",
+      "answer": "我分别算了两边的阵容战力：张飞带骑兵是 233.0，关羽带骑兵是 250.0。两边都是骑兵适性 S，所以差距主要来自武将六维。结论是关羽更高，差距 17.0，属于同一档位，实战胜负还要看兵种克制和随机波动。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 8,
+        "completeness": 8,
+        "appropriateness": 7,
+        "reasons": {
+          "faithfulness": "回答给出了具体战力数值（233.0 vs 250.0），并将差距归因于武将六维，同时提到兵种适性相同，属于基于计算数据的合理归因，未编造克制关系；但未展示六维具体数据，归因略笼统。",
+          "completeness": "报告类回答引用了关键数字（双方战力、差距17.0）和适性信息，核心指标完整；但缺少六维明细等支撑数据，完整性略有欠缺。",
+          "appropriateness": "问题明确，回答直接给出结论并声明了假设（同档位、实战受克制和随机波动影响），应对得体；但未主动澄清'战力'定义或数据来源，略显不足。"
+        }
+      },
+      "judge_mean": 7.67
+    },
+    {
+      "id": "C3-clean-short",
+      "question": "骑兵克制哪些兵种？",
+      "answer": "骑兵克制盾兵、器械（来自兵种表，非推测）。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 9,
+        "completeness": 8,
+        "appropriateness": 8,
+        "reasons": {
+          "faithfulness": "回答明确声明克制关系来自兵种表而非推测，归因有依据，未编造通用常识因果。",
+          "completeness": "引用了关键结论（盾兵、器械）并注明来源，但未展示具体兵种表数据细节，完整性略扣分。",
+          "appropriateness": "问题明确，回答直接给出答案并声明依据，应对得体；但未进一步说明适用范围或假设，略显简略。"
+        }
+      },
+      "judge_mean": 8.33
+    },
+    {
+      "id": "C4-clean-structured",
+      "question": "张飞带骑兵打袁绍的盾兵和弓兵，哪个胜率更高？",
+      "answer": "两项对比：\n· 对盾兵：100.0%\n· 对弓兵：72.8%\n结论：对盾兵更有利。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 3,
+        "completeness": 4,
+        "appropriateness": 5,
+        "reasons": {
+          "faithfulness": "回答只给出了两个胜率数字，完全没有说明这些数字的来源或因果依据（如兵种克制、属性计算等），无法判断归因是否忠实；数字看起来像是凭空给出，缺乏可验证依据。",
+          "completeness": "作为对比类回答，给出了关键数字，但未引用任何工具结果、计算过程或数据来源，也未说明胜率如何得出，引用完整性不足。",
+          "appropriateness": "问题本身较模糊（未说明兵力、地形、版本规则等），回答直接给出精确到小数点的胜率却未声明假设或澄清条件，略显不懂装懂，但至少正面回应了对比问题。"
+        }
+      },
+      "judge_mean": 4.0
+    },
+    {
+      "id": "C5-clean-short",
+      "question": "帮我诊断一下现在的数值平衡问题。",
+      "answer": "器械最弱（多数对局低于 20%），骑兵对盾兵优势偏大。建议先动 DAMAGE_FACTOR，再复诊一轮。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 6,
+        "completeness": 5,
+        "appropriateness": 6,
+        "reasons": {
+          "faithfulness": "回答给出了具体结论（器械胜率低于20%、骑兵对盾兵优势偏大），看起来基于某种对局数据，但未展示数据来源或工具调用，因果归因（建议调DAMAGE_FACTOR）缺乏明确依据支撑，属于半有据半推断。",
+          "completeness": "报告类回答应引用关键数字/指标，这里只给了'低于20%'一个模糊阈值，缺少具体胜率、样本量、各兵种对比数据等，引用完整性不足。",
+          "appropriateness": "面对'诊断数值平衡'的宽泛请求，回答给出了方向性结论和下一步建议，态度得体，但未声明数据来源或假设，也未在信息不足时澄清，略显武断。"
+        }
+      },
+      "judge_mean": 5.67
+    },
+    {
+      "id": "C6-clean-short",
+      "question": "今天上海天气怎么样？",
+      "answer": "查不了，我没有天气数据源，只能回答 SLG 数值相关的问题。",
+      "gold": "ok",
+      "defect": "none",
+      "judge": {
+        "faithfulness": 9,
+        "completeness": 8,
+        "appropriateness": 10,
+        "reasons": {
+          "faithfulness": "回答如实说明自身能力边界（无天气数据源、仅限SLG数值问题），没有编造任何天气信息或虚构数据来源，归因真实可信。",
+          "completeness": "用户问的是天气，本无工具结果可引用，回答明确说明了无法查询的原因，信息交代完整；仅因未提供替代建议（如建议用户查看天气App）略扣分。",
+          "appropriateness": "面对超出自身能力范围的问题，坦诚说明限制而非不懂装懂或答非所问，应对得体。"
+        }
+      },
+      "judge_mean": 9.0
+    }
+  ]
+}

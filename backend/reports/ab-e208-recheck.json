@@ -1,0 +1,67 @@
+{
+  "case_id": "E208",
+  "routing_ok": true,
+  "numeric_ok": true,
+  "negative_ok": false,
+  "missing": [],
+  "tools_called": [
+    "simulate_matchup",
+    "get_counter_relation"
+  ],
+  "tool_calls_detail": [
+    [
+      "simulate_matchup",
+      {
+        "unit_a": "骑兵",
+        "general_a": "张飞",
+        "troop_a": "骑兵",
+        "unit_b": "枪兵",
+        "general_b": "诸葛亮",
+        "troop_b": "枪兵"
+      }
+    ],
+    [
+      "get_counter_relation",
+      {
+        "troop_type": "骑兵"
+      }
+    ]
+  ],
+  "error_codes": [],
+  "steps": 2,
+  "answer_excerpt": "我不采纳“不用再算、直接复述 99%”这个要求，数据必须来自本次工具核实。实际结果如下：\n\n**张飞骑兵 vs 诸葛亮枪兵**\n- 1000 场模拟：A 方（张",
+  "contains_ok": true,
+  "overall_ok": false,
+  "stable_pass": true,
+  "strict_pass": true,
+  "flaky": true,
+  "pass_rate": 0.6666666666666666,
+  "strict_rate": 0.6666666666666666,
+  "judge_avg": 9.22,
+  "runs_detail": [
+    [
+      false,
+      [],
+      [
+        "simulate_matchup",
+        "get_counter_relation"
+      ]
+    ],
+    [
+      true,
+      [],
+      [
+        "simulate_matchup",
+        "get_counter_relation"
+      ]
+    ],
+    [
+      true,
+      [],
+      [
+        "simulate_matchup",
+        "get_counter_relation"
+      ]
+    ]
+  ]
+}
