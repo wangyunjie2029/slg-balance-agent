@@ -87,6 +87,17 @@ export default function Home() {
 
     const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+    // ⚠️ 安全边界说明：NEXT_PUBLIC_* 会被打进浏览器 bundle，打开 DevTools 就能看到。
+    // 所以它只能挡「随手 curl 一下」这种误用，挡不住有心人。
+    // 真正的密钥必须放服务端（BFF 代理），这个项目没有后端代理层，所以：
+    //   防护 = CORS 白名单 + 令牌桶限流 + 这个半公开 token
+    // 别把它当成真鉴权。
+    const TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
+    const reqHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (TOKEN) reqHeaders["Authorization"] = `Bearer ${TOKEN}`;
+
     // 错误必须变成一条「军师回禀」，否则用户只会看到一片空白，
     // 以为是卡住了 —— 这是上线前最容易漏掉的一类缺陷。
     const pushError = (text: string) => {
@@ -103,7 +114,7 @@ export default function Home() {
     try {
       resp = await fetch(`${API}/api/chat/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: reqHeaders,
         body: JSON.stringify({ message: q, session_id: sessionId }),
       });
     } catch {
