@@ -11,6 +11,7 @@ from infra import guarded_tool, is_error, log_event
 from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from mc_sim import run_mc_sim
+from trace import store
 
 TOOLS = [
     {
@@ -182,6 +183,13 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
                                 }
                                 return
                             last_tool_sig = sig
+                            # 落 trace：工具调用明细。store.stats() 的失败率/步数都靠它
+                            store.log(
+                                "tool_call",
+                                thread_id=thread_id,
+                                tool=tc["name"],
+                                args=tc["args"],
+                            )
                             yield {
                                 "event": "tool_call",
                                 "data": {"tool": tc["name"], "args": tc["args"]},
@@ -192,14 +200,29 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
                             data = json.loads(msg.content)
                         except (json.JSONDecodeError, TypeError):
                             data = {"raw": str(msg.content)}
+                        store.log(
+                            "tool_result",
+                            thread_id=thread_id,
+                            ok="error_code" not in data,
+                            error_code=data.get("error_code"),
+                            # 工具耗时来自 guarded_tool 注入的 _elapsed_ms，
+                            # 没有它 stats() 的 P95 永远是 0
+                            ms=data.get("_elapsed_ms"),
+                        )
                         yield {"event": "tool_result", "data": data}
                     # 模型最终回答
                     else:
                         record_success(thread_id)  # 正常收尾 → 清零失败计数
+                        store.log(
+                            "answer",
+                            thread_id=thread_id,
+                            chars=len(msg.content or ""),
+                        )
                         yield {"event": "answer", "data": {"text": msg.content}}
     except GraphRecursionError:
         # 注意：这不属于"服务故障"，不该计入降级计数——
         # 模型是好的，只是我们主动刹车了。
+        store.log("loop_guard", thread_id=thread_id, reason="recursion_limit")
         yield {
             "event": "answer",
             "data": {
@@ -209,6 +232,12 @@ def ask_agent_stream(question: str, thread_id: str = "default", max_rounds: int 
     except Exception as e:  # ← 兜底一切：LLM 连续失败 / 网络中断 / 解析异常
         n = record_failure(thread_id)
         print(f"[agent] 异常（第 {n} 次连续失败）: {type(e).__name__}: {e}")
+        store.log(
+            "error",
+            thread_id=thread_id,
+            error=type(e).__name__,
+            consecutive_failures=n,
+        )
 
         # 连续失败达到阈值 → 走确定性兜底，而不是继续让用户看"请重试"
         if should_fallback(thread_id):

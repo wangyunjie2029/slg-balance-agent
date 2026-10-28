@@ -7,9 +7,10 @@ import sqlite3
 from typing import Annotated
 
 from agent import TOOLS, dispatch  # 复用已有工具定义与执行
-from config import DAMAGE_JITTER, SIM_N, SIM_SEED, WINDOW_SIZE
+from config import DAMAGE_JITTER, SIM_N, SIM_SEED, TOOL_TIMEOUT, WINDOW_SIZE
 from data import GENERALS, UNITS
 from dotenv import load_dotenv
+from infra import guarded_tool
 from langchain_core.messages import (
     AIMessage,
     AnyMessage,
@@ -65,18 +66,22 @@ load_dotenv()  # graph.py 自己读 .env，别依赖别的文件先执行
 # SIM_N / DAMAGE_JITTER / SIM_SEED / WINDOW_SIZE 都在 config.py 里，可用环境变量覆盖。
 
 
-@tool
-def simulate_matchup(
-    unit_a: Annotated[str, Field(description="A 方兵种名")],
-    general_a: Annotated[str, Field(description="A 方武将名")],
-    troop_a: Annotated[str, Field(description="A 方兵种类型")],
-    unit_b: Annotated[str, Field(description="B 方兵种名")],
-    general_b: Annotated[str, Field(description="B 方武将名")],
-    troop_b: Annotated[str, Field(description="B 方兵种类型")],
+def _simulate_impl(
+    unit_a: str,
+    general_a: str,
+    troop_a: str,
+    unit_b: str,
+    general_b: str,
+    troop_b: str,
 ) -> dict:
-    """模拟两支阵容的对战，返回 A 方胜率。用于回答'谁赢/胜率多少'类问题。"""
+    """真实模拟逻辑（不含 schema 声明）。被 guarded_tool 包住：
+    超时 → TIMEOUT，名字不存在 → BAD_ARGUMENT，其他异常 → INTERNAL。
+
+    为什么要拆成 impl：@tool 需要「原始函数签名」来生成 JSON Schema，
+    而 guarded_tool 用 *args/**kwargs 包装会破坏签名。所以拆开——
+    内层放逻辑（可被任意包装），外层 @tool 只做声明与转发。
+    """
     from battle import Army
-    from data import GENERALS, UNITS
     from mc_sim import run_mc_sim
     from troops import TROOP_TYPES
 
@@ -107,7 +112,6 @@ def simulate_matchup(
 
     army_a = Army(unit=UNITS[unit_a], general=GENERALS[general_a], troop_type=troop_a)
     army_b = Army(unit=UNITS[unit_b], general=GENERALS[general_b], troop_type=troop_b)
-    # 参数取自统一常量（SIM_N / DAMAGE_JITTER / SIM_SEED），不在这里写魔法数
     r = run_mc_sim(
         army_a, army_b, n=SIM_N, damage_jitter=DAMAGE_JITTER, seed=SIM_SEED
     )
@@ -117,6 +121,28 @@ def simulate_matchup(
         "draws": r.draws,
         "win_rate_a": r.win_rate_a,
     }
+
+
+# ★ 关键：ToolNode 调的就是这个（流式路径 = 线上真实路径）。
+# 不加这一层，infra.guarded_tool 就只保护了非流式的 dispatch，等于没生效。
+_simulate_guarded = guarded_tool("simulate_matchup", timeout=TOOL_TIMEOUT)(
+    _simulate_impl
+)
+
+
+@tool
+def simulate_matchup(
+    unit_a: Annotated[str, Field(description="A 方兵种名")],
+    general_a: Annotated[str, Field(description="A 方武将名")],
+    troop_a: Annotated[str, Field(description="A 方兵种类型")],
+    unit_b: Annotated[str, Field(description="B 方兵种名")],
+    general_b: Annotated[str, Field(description="B 方武将名")],
+    troop_b: Annotated[str, Field(description="B 方兵种类型")],
+) -> dict:
+    """模拟两支阵容的对战，返回 A 方胜率。用于回答'谁赢/胜率多少'类问题。"""
+    return _simulate_guarded(
+        unit_a, general_a, troop_a, unit_b, general_b, troop_b
+    )
 
 
 @tool

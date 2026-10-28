@@ -51,22 +51,45 @@ class TraceStore:
 
     # ---------- 统计：这是评测报告的数据源 ----------
 
+    def _rows(self) -> list[dict]:
+        """取要统计的行：内存优先，内存为空则回读文件。
+
+        为什么必须支持回读：`stats()` 常常在另一个进程里调用
+        （比如 `python -c "from trace import store; print(store.stats())"`），
+        新进程的 events 是空的。只读内存会永远返回 0 —— 这个 bug 我踩过。
+        """
+        if self.events:
+            return self.events
+        rows: list[dict] = []
+        if os.path.exists(self.path):
+            with open(self.path, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        rows.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+        return rows
+
     def stats(self) -> dict:
         """汇总关键指标。对应评测三环里的「轨迹环」和「成本」。"""
-        by_event = Counter(e["event"] for e in self.events)
-        tool_rows = [e for e in self.events if e["event"] == "tool_call"]
+        rows = self._rows()
+        by_event = Counter(e["event"] for e in rows)
+        tool_rows = [e for e in rows if e["event"] == "tool_call"]
         tool_fail = [e for e in tool_rows if e.get("ok") is False]
 
         # 每个会话的步数（工具调用次数）—— 步数爆炸是典型 agent 病
         steps = defaultdict(int)
-        for e in self.events:
+        for e in rows:
             if e["event"] == "tool_call":
                 steps[e["thread_id"]] += 1
 
-        latencies = [e["ms"] for e in self.events if isinstance(e.get("ms"), (int, float))]
+        latencies = [e["ms"] for e in rows if isinstance(e.get("ms"), (int, float))]
 
         return {
-            "total_events": len(self.events),
+            "total_events": len(rows),
             "by_event": dict(by_event),
             "tool_calls": len(tool_rows),
             "tool_failures": len(tool_fail),
