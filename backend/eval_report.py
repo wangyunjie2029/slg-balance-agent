@@ -103,7 +103,44 @@ def run_all(
             skipped += 1
             continue
 
-        r = run_case_stable(case, k=k)
+        # 单条失败不该让整批崩掉：45 分钟的批跑因为一次 402/超时/解析异常
+        # 全部作废，是最没必要的损失（实测发生过：账户余额耗尽，175/193 处中断）。
+        try:
+            r = run_case_stable(case, k=k)
+        except Exception as e:  # noqa: BLE001 - 批跑要吞掉一切单条异常
+            msg = f"{type(e).__name__}: {e}"
+            print(f"[{i}/{total}] ERROR {cid} — {msg[:140]}", flush=True)
+            fatal = (
+                "Insufficient Balance" in msg
+                or "401" in msg
+                or "402" in msg
+                or "invalid_api_key" in msg
+            )
+            if fatal:
+                print(
+                    "\n检测到账户余额/鉴权问题：继续跑只会重复失败，已中止。"
+                    f"\n已完成 {len(results)} 条，结果保留在 {progress_path or '内存'}；"
+                    "问题解决后用同一命令重跑会自动跳过已完成项。",
+                    flush=True,
+                )
+                break
+            # 非致命（单条超时、偶发 5xx）：记一条 error 继续跑
+            results.append(
+                {
+                    "case_id": cid,
+                    "pass_rate": 0.0,
+                    "stable_pass": False,
+                    "strict_pass": False,
+                    "flaky": False,
+                    "judge_avg": None,
+                    "tools_called": [],
+                    "missing": [],
+                    "answer_excerpt": f"ERROR {msg[:120]}",
+                    "api_error": True,
+                }
+            )
+            continue
+
         results.append(r)
 
         if progress_path:

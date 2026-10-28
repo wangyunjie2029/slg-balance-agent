@@ -1,0 +1,1140 @@
+{
+  "generated_at": "2026-10-28 11:59:24",
+  "cases_path": "eval_cases_core.json",
+  "k": 3,
+  "config": {
+    "model": "deepseek-chat",
+    "max_rounds": 10,
+    "window_size": 12,
+    "sim_n": 500,
+    "damage_jitter": 0.35,
+    "sim_seed": 42,
+    "tool_timeout": 30.0,
+    "rate_limit": "20/0.5per sec",
+    "auth_enabled": false,
+    "failure_threshold": 2,
+    "api_key_set": true
+  },
+  "total": 175,
+  "passed": 174,
+  "pass_rate": 0.989,
+  "strict_passed": 174,
+  "strict_pass_rate": 0.994,
+  "avg_judge": 9.53,
+  "flaky_cases": [
+    "E102",
+    "G381"
+  ],
+  "stable_fail_cases": [],
+  "avg_steps": 1.74,
+  "failure_by_kind": [
+    [
+      "BAD_ARGUMENT",
+      4
+    ],
+    [
+      "WRONG_ARGUMENT",
+      1
+    ],
+    [
+      "LOW_QUALITY",
+      1
+    ],
+    [
+      "HALLUCINATION",
+      1
+    ]
+  ],
+  "failure_by_owner": [
+    [
+      "tool",
+      4
+    ],
+    [
+      "prompt",
+      2
+    ],
+    [
+      "data",
+      1
+    ]
+  ],
+  "top_action": "先改 tool（影响 4 条）",
+  "stratified": {
+    "extreme": {
+      "total": 15,
+      "passed": 15,
+      "pass_rate": 1.0
+    },
+    "balanced": {
+      "total": 90,
+      "passed": 90,
+      "pass_rate": 1.0
+    },
+    "compare": {
+      "total": 15,
+      "passed": 15,
+      "pass_rate": 1.0
+    },
+    "other": {
+      "total": 55,
+      "passed": 54,
+      "pass_rate": 0.982
+    }
+  },
+  "cases": [
+    {
+      "case_id": "E101",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E102",
+      "passed": false,
+      "primary": "WRONG_ARGUMENT",
+      "evidence": "tool name ok but args mismatch: called=[['simulate_matchup', {'unit_a': '骑兵', 'general_a': '赵云', 'troop_a': '骑兵', 'unit_b': '枪兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['get_counter_relation', {'troop_type': '骑兵'}], ['simulate_matchup', {'unit_a': '枪兵', 'general_a': '赵云', 'troop_a': '枪兵', 'unit_b': '骑兵', 'general_b': '张辽', 'troop_b': '骑兵'}], ['get_counter_relation', {'troop_type': '枪兵'}]] expected=[['simulate_matchup', {'general_a': '赵云', 'troop_a': '骑兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['simulate_matchup', {'general_a': '张辽', 'troop_a': '枪兵', 'general_b': '赵云', 'troop_b': '骑兵'}]]"
+    },
+    {
+      "case_id": "E103",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E104",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E105",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E106",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E107",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E108",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E109",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E110",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E111",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E112",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E201",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E202",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E203",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E204",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E205",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E206",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E207",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E208",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E209",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E210",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E211",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E212",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E301",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E302",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E303",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E304",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E305",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E306",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E307",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E308",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E309",
+      "passed": true,
+      "primary": "LOW_QUALITY",
+      "evidence": "low dims=['completeness', 'appropriateness']"
+    },
+    {
+      "case_id": "E310",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E401",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E402",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E403",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E404",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E405",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E406",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "E501",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E502",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E503",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E504",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E505",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E506",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G008",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G011",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G015",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G022",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G023",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G039",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G050",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G058",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G059",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G064",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G065",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G079",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G080",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G085",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G094",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G095",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G098",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G102",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1025",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1028",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1055",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G106",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G110",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1113",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1154",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1170",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G118",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1191",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1192",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1193",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1194",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G1195",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G123",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G124",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "G125",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G127",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G128",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G129",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G137",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G148",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G149",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G150",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G156",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G158",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G160",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G165",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G169",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G184",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G196",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G201",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G214",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G228",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G233",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G250",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G255",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G256",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G263",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G269",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G287",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G304",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G309",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G315",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G320",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G324",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G325",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G335",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G339",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G350",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G354",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G366",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G374",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G378",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G381",
+      "passed": false,
+      "primary": "HALLUCINATION",
+      "evidence": "missing keys=['win_rate']"
+    },
+    {
+      "case_id": "G387",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G399",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G400",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G401",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G414",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G415",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G416",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G422",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G426",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G430",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G435",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G439",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G440",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G442",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G445",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G450",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G470",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G472",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G483",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G496",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G507",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G512",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G513",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G523",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G524",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G527",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G531",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G532",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G533",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G538",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G554",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G564",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G565",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G567",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G568",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G570",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G578",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G579",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G584",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G588",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G590",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G593",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G594",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G623",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G626",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G628",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G691",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G799",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G819",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G821",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G834",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G880",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R01",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R02",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R03",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R04",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    }
+  ],
+  "rendered": "通过率 98.9%（173/175）\n\n失败类型分布：\n  BAD_ARGUMENT             4  → JSON Schema / 参数描述\n  WRONG_ARGUMENT           1  → prompt 指代解析 / few-shot\n  LOW_QUALITY              1  → prompt / 数据依据\n  HALLUCINATION            1  → 结果注入 / 数据源\n\n按组件聚合（修复优先级）：\n  tool             4 条\n  prompt           2 条\n  data             1 条\n\n结论：先改 tool（影响 4 条）\n\n失败明细：\n  [WRONG_ARGUMENT] E102 — tool name ok but args mismatch: called=[['simulate_matchup', {'unit_a': '骑兵', 'general_a': '赵云', 'troop_a': '骑兵', 'unit_b': '枪兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['get_counter_relation', {'troop_type': '骑兵'}], ['simulate_matchup', {'unit_a': '枪兵', 'general_a': '赵云', 'troop_a': '枪兵', 'unit_b': '骑兵', 'general_b': '张辽', 'troop_b': '骑兵'}], ['get_counter_relation', {'troop_type': '枪兵'}]] expected=[['simulate_matchup', {'general_a': '赵云', 'troop_a': '骑兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['simulate_matchup', {'general_a': '张辽', 'troop_a': '枪兵', 'general_b': '赵云', 'troop_b': '骑兵'}]]\n       修法：给 1-2 个多轮指代的 few-shot；或要求模型先复述「你要比的是 X vs Y」再调用\n  [LOW_QUALITY] E309 — low dims=['completeness', 'appropriateness']\n       修法：要求因果解释必须引用工具字段；禁止用通用常识解释机制\n  [BAD_ARGUMENT] E401 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E402 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E406 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] G124 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [HALLUCINATION] G381 — missing keys=['win_rate']\n       修法：结构化返回 + 模板渲染；禁止模型自行换算或四舍五入",
+  "partial": true,
+  "note": "已完成 175/193 条（90.6%）。剩余 18 条（routing 9 + numeric 9）因 DeepSeek 账户余额不足（HTTP 402）中断，未参与统计。可用同一命令续跑补全。"
+}
