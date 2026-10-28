@@ -26,4 +26,4 @@ npm-debug.log*
 backend/checkpoints.db*
 backend/traces.jsonl
 # 评测进度文件（每跑完一条追加一行，属于临时产物；正式报告 reports/*.json 会提交）
-backend/reports/prog.jsonl
+backend/reports/prog*.jsonl

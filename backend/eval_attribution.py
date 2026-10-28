@@ -123,7 +123,12 @@ SEVERITY = {
 # 归一化阈值：Judge 三项均值低于它就算质量问题
 # 6.0 是经验值；核心集实测 Judge 均分 8.23，说明这个阈值偏宽松，
 # 但**尚未与人工标注校准**，所以先不动 —— 未经校准的调参只是自欺。
-JUDGE_THRESHOLD = 6.0
+# 归一化阈值：Judge 三项均值低于它就算质量问题。
+# ★ 已校准（不是拍的）：eval_judge_calibration.py 用 30 条锚点样本
+#   （6 问 × 5 变体：正确 / 数字错 / 缺要点 / 编造因果 / 越界）验证，
+#   在 6.5 上一致率 30/30、零误杀零漏放（干净样本最低 8.33，缺陷样本最高 6.33）。
+#   复现：python eval_judge_calibration.py → reports/judge-calibration.json
+JUDGE_THRESHOLD = 6.5
 
 
 @dataclass
@@ -349,8 +354,10 @@ def render_report(summary: dict, rows: list[Attribution] | None = None) -> str:
 #   steps             : int                  工具调用次数（步数）
 #
 # 仍待办（按重要性）：
-#   ① JUDGE_THRESHOLD=6.0 是经验值，**尚未与人工标注校准一致率**。
-#      做法：人工标 50 条，算 Judge 与人工的一致率，低于 80% 就不能用。
+#   ① ~~JUDGE_THRESHOLD 未校准~~ 已完成：eval_judge_calibration.py 用 30 条
+#      锚点样本校准，6.5 阈值下一致率 30/30、零误杀。局限：锚点是我自己按
+#      评分定义造的，不是第三方标注，所以只能说"Judge 与定义一致"，不能说
+#      "Judge 与人类专家一致"。
 #   ② LOOP_GUARD 目前靠回答文本里出现「步数上限 / 重复调用」来识别，
 #      更稳的做法是从事件流里读 agent 的停机原因（需要一个 stop_reason 字段）。
 #   ③ 若要把归因结果喂给看板，加一个 save_json 落盘即可。

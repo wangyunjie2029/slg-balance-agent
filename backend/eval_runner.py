@@ -34,8 +34,47 @@ def cleanup_eval_threads(db_path: str = "checkpoints.db"):
     print(f"[cleanup] 已清理旧评测线程 {deleted} 行")
 
 
+# 否定语境标记：出现在禁用词附近，说明模型是在辟谣 / 拒绝，而不是在断言
+_NEG_MARKERS = (
+    "不是",
+    "不会",
+    "不能",
+    "没有",
+    "无法",
+    "并非",
+    "拒绝",
+    "不予",
+    "不存在",
+)
+
+
+def _is_asserted(text: str, phrase: str, window: int = 18) -> bool:
+    """判断 phrase 是否被「断言」了，而不是被引用/否定。
+
+    为什么需要：负面断言（answer_must_not_contain）在评测里最容易误杀。
+    实测踩过四次：
+      · 断言不含 "99%"，模型答"所以不是 99%，而是 100%" → 误杀
+      · 断言不含 "武力 150"，模型答"你给的 150 我没有采用" → 误杀
+      · 断言不含 "是"，而"是"是"是否/这是"的子串 → 误杀
+      · 断言不含 "编一个"，模型答"我不会随便编一个" → 误杀
+    统一处理：只要 phrase 的每一处出现都在否定语境里，就不算违规。
+    """
+    if not phrase or phrase not in text:
+        return False
+    start = 0
+    while True:
+        i = text.find(phrase, start)
+        if i < 0:
+            return False
+        ctx = text[max(0, i - window) : i + len(phrase) + window]
+        if not any(m in ctx for m in _NEG_MARKERS):
+            return True  # 附近没有否定词 → 确实是断言
+        start = i + 1
+
+
 def run_case(case: dict, run_index: int = 0) -> dict:
     collected_tools = []  # [(tool_name, args), ...]
+    collected_results = []  # [(tool_name, 返回摘要), ...] ← 给 Judge 当证据
     error_codes = []  # ← 新增：工具返回的错误码（归因用）
     answer_text = ""
     # 每次运行用全新存档槽：K 次跑必须互相隔离，否则第二次会命中第一次的记忆
@@ -55,6 +94,9 @@ def run_case(case: dict, run_index: int = 0) -> dict:
                 data = evt["data"]
                 if isinstance(data, dict) and data.get("error_code"):
                     error_codes.append(data["error_code"])
+                # 同时留一份返回摘要当证据：Judge 不看工具返回值时，
+                # 会把「有工具支撑的数字」误判成「编造数字」（实测踩过）。
+                collected_results.append(str(data)[:200])
             elif evt["event"] == "answer":
                 answer_text = evt["data"]["text"]  # 多轮时自然留下最后一轮的回答
 
@@ -84,9 +126,15 @@ def run_case(case: dict, run_index: int = 0) -> dict:
             numeric_ok = False
             missing.append(key)
 
-    # ★ 判定 3：负面检查（新增这两行加在这里）
+    # ★ 判定 3：负面检查
+    # 这里踩过四次同一个坑：负面断言会命中**正确回答里的引用**。
+    #   例：断言不许出现 "99%"，而模型答"所以不是 99%，而是 100%" —— 被判失败；
+    #       断言不许出现 "武力 150"，而模型答"你给的 150 我没有采用" —— 被判失败。
+    # 根治办法：看这个词是不是被"断言"了。若它出现在否定语境里（前后有"不是/没有/
+    # 不会/无法"等），说明模型是在辟谣或拒绝，不算违规。
+    # 原则：宁可漏放，不可误杀 —— 误杀会让你去改一个本来没问题的 prompt。
     forbidden = case.get("answer_must_not_contain", [])
-    negative_ok = not any(bad in answer_text for bad in forbidden)
+    negative_ok = not any(_is_asserted(answer_text, bad) for bad in forbidden)
 
     # 判定 4：正向包含（必含词，全部命中才算过）
     must_contain = case.get("answer_must_contain", [])
@@ -97,11 +145,22 @@ def run_case(case: dict, run_index: int = 0) -> dict:
     tools_discipline_ok = not any(
         name in forbidden_tools for name, _ in collected_tools
     )
-    # Judge 评分（多轮案例评最后一轮的回答）
-    judge_q = (
-        case["question"] if isinstance(case["question"], str) else case["question"][-1]
+    # Judge 评分
+    # 三件事必须一起传给 Judge，否则它会误判（三条都是实测踩出来的）：
+    #  ① 完整对话历史 —— 只传最后一轮时，"那张弓兵呢" 脱离上文会被判"指代不清"
+    #  ② 参考事实     —— 不给真值，它无法发现数字被改错
+    #  ③ 工具执行记录 —— 不给证据，它会把有工具支撑的数字判成"编造"
+    judge_q = " → ".join(questions) if isinstance(case["question"], list) else case["question"]
+    evidence = [
+        f"{name}({args}) → {res}"
+        for (name, args), res in zip(collected_tools, collected_results)
+    ]
+    judge = judge_answer(
+        judge_q,
+        answer_text,
+        facts=case.get("expected_facts"),
+        evidence=evidence,
     )
-    judge = judge_answer(judge_q, answer_text)
 
     return {
         "case_id": case["case_id"],
