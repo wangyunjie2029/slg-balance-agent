@@ -1,0 +1,228 @@
+{
+  "generated_at": "2026-10-27 17:10:03",
+  "cases_path": "eval_cases.json",
+  "k": 1,
+  "config": {
+    "model": "deepseek-chat",
+    "max_rounds": 10,
+    "window_size": 12,
+    "sim_n": 500,
+    "damage_jitter": 0.35,
+    "sim_seed": 42,
+    "tool_timeout": 30.0,
+    "rate_limit": "20/0.5per sec",
+    "failure_threshold": 2,
+    "api_key_set": true
+  },
+  "total": 30,
+  "passed": 30,
+  "pass_rate": 1.0,
+  "flaky_cases": [
+    "R09"
+  ],
+  "stable_fail_cases": [],
+  "avg_steps": 1.97,
+  "failure_by_kind": [],
+  "failure_by_owner": [],
+  "top_action": "全部通过",
+  "stratified": {
+    "extreme": {
+      "total": 11,
+      "passed": 11,
+      "pass_rate": 1.0
+    },
+    "balanced": {
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1.0
+    },
+    "other": {
+      "total": 18,
+      "passed": 18,
+      "pass_rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "G142",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G007",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R07",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G168",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G049",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G041",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G036",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G014",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G167",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G005",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G152",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G212",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G118",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G001",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G130",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G087",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R09",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R08",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G002",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G034",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G038",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G108",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G133",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G213",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G122",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G029",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G162",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G145",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G158",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "G203",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    }
+  ],
+  "rendered": "通过率 100.0%（30/30）\n\n失败类型分布：\n\n按组件聚合（修复优先级）：\n\n结论：全部通过\n\n失败明细："
+}

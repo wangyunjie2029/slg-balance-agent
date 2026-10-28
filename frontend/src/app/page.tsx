@@ -85,11 +85,48 @@ export default function Home() {
     setBusy(true);
     setTurns((t) => [...t, { role: "user", text: q }, { role: "agent", events: [] }]);
 
-    const resp = await fetch("http://localhost:8000/api/chat/stream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: q, session_id: sessionId }),
-    });
+    const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+    // 错误必须变成一条「军师回禀」，否则用户只会看到一片空白，
+    // 以为是卡住了 —— 这是上线前最容易漏掉的一类缺陷。
+    const pushError = (text: string) => {
+      setTurns((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last.role !== "agent") return prev;
+        last.events = [...last.events, { kind: "answer", text: `⚠️ ${text}` }];
+        return next;
+      });
+    };
+
+    let resp: Response;
+    try {
+      resp = await fetch(`${API}/api/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: q, session_id: sessionId }),
+      });
+    } catch {
+      // 网络层失败：后端没启动 / 断网 / DNS 解析失败
+      pushError("无法连接服务器，请确认后端已启动，或稍后重试。");
+      setBusy(false);
+      return;
+    }
+
+    // 后端在 401 / 429 / 5xx 时返回的是 JSON 而不是 SSE 流。
+    // 直接当流解析只会得到空回答，所以必须先判状态码。
+    if (!resp.ok) {
+      let msg = `请求失败（HTTP ${resp.status}）`;
+      try {
+        const body = await resp.json();
+        msg = body?.error ?? body?.detail ?? msg;
+      } catch {
+        // 响应体不是 JSON，用默认文案
+      }
+      pushError(msg);
+      setBusy(false);
+      return;
+    }
 
     const reader = resp.body!.getReader();
     const decoder = new TextDecoder();
@@ -104,7 +141,13 @@ export default function Home() {
         else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
       }
       if (!dataLines.length) return;
-      const data = JSON.parse(dataLines.join("\n"));
+      // 非 JSON 的块直接跳过：一个坏块不该让整个流崩掉
+      let data: any;
+      try {
+        data = JSON.parse(dataLines.join("\n"));
+      } catch {
+        return;
+      }
 
       setTurns((prev) => {
         const next = [...prev];
@@ -120,15 +163,20 @@ export default function Home() {
       });
     }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const blocks = buffer.split("\n\n");
-      buffer = blocks.pop()!;            // ★ 不完整的尾巴留回 buffer
-      blocks.forEach(handleBlock);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const blocks = buffer.split("\n\n");
+        buffer = blocks.pop()!;            // ★ 不完整的尾巴留回 buffer
+        blocks.forEach(handleBlock);
+      }
+      if (buffer.trim()) handleBlock(buffer);  // 流结束后的残余
+    } catch {
+      // 连接中途断开（后端重启 / 网络抖动）：已收到的内容保留，提示不完整
+      pushError("连接中断，上面的回答可能不完整。");
     }
-    if (buffer.trim()) handleBlock(buffer);  // 流结束后的残余
     setBusy(false);
   }
 
