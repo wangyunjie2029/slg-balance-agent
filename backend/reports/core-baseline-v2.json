@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28 11:59:24",
+  "generated_at": "2026-10-28 12:06:39",
   "cases_path": "eval_cases_core.json",
   "k": 3,
   "config": {
@@ -15,22 +15,23 @@
     "failure_threshold": 2,
     "api_key_set": true
   },
-  "total": 175,
-  "passed": 174,
-  "pass_rate": 0.989,
-  "strict_passed": 174,
-  "strict_pass_rate": 0.994,
+  "total": 193,
+  "passed": 192,
+  "pass_rate": 0.99,
+  "strict_passed": 192,
+  "strict_pass_rate": 0.995,
   "avg_judge": 9.53,
   "flaky_cases": [
     "E102",
-    "G381"
+    "G381",
+    "R18"
   ],
   "stable_fail_cases": [],
-  "avg_steps": 1.74,
+  "avg_steps": 1.77,
   "failure_by_kind": [
     [
       "BAD_ARGUMENT",
-      4
+      6
     ],
     [
       "WRONG_ARGUMENT",
@@ -48,7 +49,7 @@
   "failure_by_owner": [
     [
       "tool",
-      4
+      6
     ],
     [
       "prompt",
@@ -59,7 +60,7 @@
       1
     ]
   ],
-  "top_action": "先改 tool（影响 4 条）",
+  "top_action": "先改 tool（影响 6 条）",
   "stratified": {
     "extreme": {
       "total": 15,
@@ -77,9 +78,9 @@
       "pass_rate": 1.0
     },
     "other": {
-      "total": 55,
-      "passed": 54,
-      "pass_rate": 0.982
+      "total": 73,
+      "passed": 72,
+      "pass_rate": 0.986
     }
   },
   "cases": [
@@ -1132,9 +1133,115 @@
       "passed": true,
       "primary": null,
       "evidence": ""
+    },
+    {
+      "case_id": "R05",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "R06",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R07",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R08",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R09",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R10",
+      "passed": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    },
+    {
+      "case_id": "R11",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R12",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R13",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R14",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R15",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R16",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R17",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R18",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R19",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R20",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R21",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R22",
+      "passed": true,
+      "primary": null,
+      "evidence": ""
     }
   ],
-  "rendered": "通过率 98.9%（173/175）\n\n失败类型分布：\n  BAD_ARGUMENT             4  → JSON Schema / 参数描述\n  WRONG_ARGUMENT           1  → prompt 指代解析 / few-shot\n  LOW_QUALITY              1  → prompt / 数据依据\n  HALLUCINATION            1  → 结果注入 / 数据源\n\n按组件聚合（修复优先级）：\n  tool             4 条\n  prompt           2 条\n  data             1 条\n\n结论：先改 tool（影响 4 条）\n\n失败明细：\n  [WRONG_ARGUMENT] E102 — tool name ok but args mismatch: called=[['simulate_matchup', {'unit_a': '骑兵', 'general_a': '赵云', 'troop_a': '骑兵', 'unit_b': '枪兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['get_counter_relation', {'troop_type': '骑兵'}], ['simulate_matchup', {'unit_a': '枪兵', 'general_a': '赵云', 'troop_a': '枪兵', 'unit_b': '骑兵', 'general_b': '张辽', 'troop_b': '骑兵'}], ['get_counter_relation', {'troop_type': '枪兵'}]] expected=[['simulate_matchup', {'general_a': '赵云', 'troop_a': '骑兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['simulate_matchup', {'general_a': '张辽', 'troop_a': '枪兵', 'general_b': '赵云', 'troop_b': '骑兵'}]]\n       修法：给 1-2 个多轮指代的 few-shot；或要求模型先复述「你要比的是 X vs Y」再调用\n  [LOW_QUALITY] E309 — low dims=['completeness', 'appropriateness']\n       修法：要求因果解释必须引用工具字段；禁止用通用常识解释机制\n  [BAD_ARGUMENT] E401 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E402 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E406 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] G124 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [HALLUCINATION] G381 — missing keys=['win_rate']\n       修法：结构化返回 + 模板渲染；禁止模型自行换算或四舍五入",
-  "partial": true,
-  "note": "已完成 175/193 条（90.6%）。剩余 18 条（routing 9 + numeric 9）因 DeepSeek 账户余额不足（HTTP 402）中断，未参与统计。可用同一命令续跑补全。"
+  "rendered": "通过率 99.0%（191/193）\n\n失败类型分布：\n  BAD_ARGUMENT             6  → JSON Schema / 参数描述\n  WRONG_ARGUMENT           1  → prompt 指代解析 / few-shot\n  LOW_QUALITY              1  → prompt / 数据依据\n  HALLUCINATION            1  → 结果注入 / 数据源\n\n按组件聚合（修复优先级）：\n  tool             6 条\n  prompt           2 条\n  data             1 条\n\n结论：先改 tool（影响 6 条）\n\n失败明细：\n  [WRONG_ARGUMENT] E102 — tool name ok but args mismatch: called=[['simulate_matchup', {'unit_a': '骑兵', 'general_a': '赵云', 'troop_a': '骑兵', 'unit_b': '枪兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['get_counter_relation', {'troop_type': '骑兵'}], ['simulate_matchup', {'unit_a': '枪兵', 'general_a': '赵云', 'troop_a': '枪兵', 'unit_b': '骑兵', 'general_b': '张辽', 'troop_b': '骑兵'}], ['get_counter_relation', {'troop_type': '枪兵'}]] expected=[['simulate_matchup', {'general_a': '赵云', 'troop_a': '骑兵', 'general_b': '张辽', 'troop_b': '枪兵'}], ['simulate_matchup', {'general_a': '张辽', 'troop_a': '枪兵', 'general_b': '赵云', 'troop_b': '骑兵'}]]\n       修法：给 1-2 个多轮指代的 few-shot；或要求模型先复述「你要比的是 X vs Y」再调用\n  [LOW_QUALITY] E309 — low dims=['completeness', 'appropriateness']\n       修法：要求因果解释必须引用工具字段；禁止用通用常识解释机制\n  [BAD_ARGUMENT] E401 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E402 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] E406 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] G124 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [HALLUCINATION] G381 — missing keys=['win_rate']\n       修法：结构化返回 + 模板渲染；禁止模型自行换算或四舍五入\n  [BAD_ARGUMENT] R05 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束\n  [BAD_ARGUMENT] R10 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束"
 }
