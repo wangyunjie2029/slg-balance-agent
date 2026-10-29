@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 566" width="880" height="566" role="img" aria-label="SLG 数值平衡 Agent 七层架构图">
+  <title>SLG 数值平衡 Agent 七层架构</title>
+  <desc>请求自上而下流过接入层、编排层、工具层、上下文层、领域引擎、观测层、评测层，每层标注职责与对应文件。</desc>
+
+  <text x="40" y="26" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#57606A">请求自上而下流过七层，每层只做一件事</text>
+
+  <line x1="20" y1="52" x2="20" y2="500" stroke="#AFB8C1" stroke-width="1.2"/>
+  <path d="M20 500 L16 492 L24 492 Z" fill="#AFB8C1"/>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="44" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="74" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="79" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">1</text>
+    <text x="92" y="70" font-size="14.5" font-weight="600" fill="#1F2328">接入层</text>
+    <text x="92" y="89" font-size="11.5" fill="#57606A">谁能进来</text>
+    <text x="196" y="70" font-size="12.5" fill="#1F2328">Bearer 鉴权 · 令牌桶限流 · request_id 贯穿全链路</text>
+    <text x="196" y="89" font-size="12.5" fill="#1F2328">结构化日志（一行一 JSON）</text>
+    <text x="640" y="79" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">main.py · infra.py</text>
+
+    <rect x="40" y="112" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="142" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="147" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">2</text>
+    <text x="92" y="138" font-size="14.5" font-weight="600" fill="#1F2328">编排层</text>
+    <text x="92" y="157" font-size="11.5" fill="#57606A">何时停</text>
+    <text x="196" y="138" font-size="12.5" fill="#1F2328">LangGraph 状态图（条件边 + ToolNode）· 循环上限三层防线</text>
+    <text x="196" y="157" font-size="12.5" fill="#1F2328">重复调用检测 · LLM 连续失败三级降级</text>
+    <text x="640" y="147" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">graph.py · agent.py</text>
+
+    <rect x="40" y="180" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="210" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="215" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">3</text>
+    <text x="92" y="206" font-size="14.5" font-weight="600" fill="#1F2328">工具层</text>
+    <text x="92" y="225" font-size="11.5" fill="#57606A">调错怎么办</text>
+    <text x="196" y="206" font-size="12.5" fill="#1F2328">5 个 Function Calling 工具 · 超时守卫（线程池隔离）</text>
+    <text x="196" y="225" font-size="12.5" fill="#1F2328">结构化错误 error_code + suggestion + 可选值列表</text>
+    <text x="640" y="215" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">graph.py · infra.py</text>
+
+    <rect x="40" y="248" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="278" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="283" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">4</text>
+    <text x="92" y="274" font-size="14.5" font-weight="600" fill="#1F2328">上下文层</text>
+    <text x="92" y="293" font-size="11.5" fill="#57606A">发多少历史</text>
+    <text x="196" y="274" font-size="12.5" fill="#1F2328">滑窗裁剪 + 工具消息配对保护 + 实体摘要</text>
+    <text x="196" y="293" font-size="12.5" fill="#1F2328">输入 token −65% · SqliteSaver 会话存档</text>
+    <text x="640" y="283" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">graph.py</text>
+
+    <rect x="40" y="316" width="800" height="60" rx="8" fill="#DAFBE1" stroke="#1A7F37" stroke-width="1"/>
+    <circle cx="64" cy="346" r="14" fill="#FFFFFF" stroke="#1A7F37" stroke-width="1"/>
+    <text x="64" y="351" text-anchor="middle" font-size="13" font-weight="600" fill="#1A7F37">5</text>
+    <text x="92" y="342" font-size="14.5" font-weight="600" fill="#1A7F37">领域引擎</text>
+    <text x="92" y="361" font-size="11.5" fill="#1A7F37">数字从哪来</text>
+    <text x="196" y="342" font-size="12.5" fill="#1F2328">兵种 / 武将 / 克制 / 战力 / 战斗 / 蒙特卡洛 六模块</text>
+    <text x="196" y="361" font-size="12.5" fill="#1F2328">纯计算，零 LLM 依赖，固定 seed 逐位可复现</text>
+    <text x="640" y="351" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">data·combat·battle·mc_sim</text>
+
+    <rect x="40" y="384" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="414" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="419" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">6</text>
+    <text x="92" y="410" font-size="14.5" font-weight="600" fill="#1F2328">观测层</text>
+    <text x="92" y="429" font-size="11.5" fill="#57606A">怎么定位</text>
+    <text x="196" y="410" font-size="12.5" fill="#1F2328">结构化事件日志 · 工具失败率 / 平均步数 / P95 延迟</text>
+    <text x="196" y="429" font-size="12.5" fill="#1F2328">Langfuse 链路追踪（单次调用视角）</text>
+    <text x="640" y="419" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">infra.py · trace.py</text>
+
+    <rect x="40" y="452" width="800" height="60" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <circle cx="64" cy="482" r="14" fill="#DDF4FF" stroke="#0969DA" stroke-width="1"/>
+    <text x="64" y="487" text-anchor="middle" font-size="13" font-weight="600" fill="#0969DA">7</text>
+    <text x="92" y="478" font-size="14.5" font-weight="600" fill="#1F2328">评测层</text>
+    <text x="92" y="497" font-size="11.5" fill="#57606A">有没有变好</text>
+    <text x="196" y="478" font-size="12.5" fill="#1F2328">193 条分层核心集 · 规则 + Judge 双口径 · K=3 稳定性</text>
+    <text x="196" y="497" font-size="12.5" fill="#1F2328">11 类失败归因 · A/B 对比 · Judge 锚点校准</text>
+    <text x="640" y="487" font-size="11" font-family="SFMono-Regular, Consolas, Menlo, monospace" fill="#57606A">eval_*.py（4 个）</text>
+  </g>
+
+  <text x="40" y="542" font-size="11.5" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" fill="#57606A">中间一列是每层要回答的问题；右列是落点文件。第 5 层是绿色，因为它是唯一与 LLM 无关的一层——这正是可控性的来源。</text>
+</svg>
