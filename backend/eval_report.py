@@ -23,7 +23,7 @@ import os
 import time
 
 from config import summary as config_summary
-from eval_attribution import aggregate, attribute, render_report
+from eval_attribution import JUDGE_THRESHOLD, aggregate, attribute, render_report
 from eval_runner import run_case_stable
 
 
@@ -420,7 +420,7 @@ def main():
     print()
     print(
         f"规则通过 {report['passed']}/{report['total']}"
-        f"　严格通过（含 Judge≥{6.0}）{report['strict_passed']}/{report['total']}"
+        f"　严格通过（含 Judge≥{JUDGE_THRESHOLD}）{report['strict_passed']}/{report['total']}"
         f"　Judge 均分 {report['avg_judge']}"
     )
     print()
