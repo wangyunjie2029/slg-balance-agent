@@ -6,6 +6,7 @@ Step 0：先验证 FastAPI 服务能正常启动并返回数据。
 import json
 import time
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 import config
 from agent import ask_agent_stream
@@ -14,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from infra import bind_session, check_rate_limit, log_event, new_request_id, request_id
 from llm import chat_stream
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 @asynccontextmanager
@@ -53,8 +54,14 @@ app.add_middleware(
 
 
 # 观测中间件：给每个请求分配 request_id，记录路径/状态码/耗时。
-# 放在 CORS 之后定义 → CORS 在外层，所以所有响应（含 429）都带 CORS 头。
-# 注意：这里不返回错误，限流只针对 /api/chat/stream 这类"贵"接口，
+#
+# ⚠ 顺序机制（实测过，别凭直觉）：Starlette 的 add_middleware 是 insert(0)，
+#   **后加的在最外层**。所以这里 obs 在外层、CORS 在内层。执行顺序是
+#   ServerError → obs → CORS → 路由 → CORS → obs。
+#   429 是路由内部返回的，响应回来时会经过 CORS，所以照样带 CORS 头。
+#   反过来若 obs 自己抛异常，CORS 头会丢（概率低，但这是它在外层的代价）。
+#
+# 注意：这里不返回错误。限流只针对 /api/chat/stream 这类"贵"接口，
 # 放在路由内部判断更精准（否则 /ping 也会被限）。
 @app.middleware("http")
 async def obs_middleware(request: Request, call_next):
@@ -81,8 +88,8 @@ def root():
 
 
 class ChatRequest(BaseModel):
-    message: str
-    session_id: str = "default"  # 客户端没传就用默认槽
+    message: Annotated[str, Field(min_length=1, max_length=2000)]
+    session_id: Annotated[str, Field(max_length=64)] = "default"
 
 
 async def require_token(authorization: str = Header(default="")) -> None:
