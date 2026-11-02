@@ -22,7 +22,9 @@
   工具（超时/结构化错误/参数校验）、上下文（滑窗+摘要）、**领域引擎（纯计算，零 LLM 依赖）**、
   观测（日志/Trace/Langfuse）、评测（分层用例/双口径/K=3/归因/A-B 对比）
 - **评测驱动改进**：用例按真值难度分层，同时统计「规则通过率」与「严格通过率
-  （含 LLM Judge）」，失败自动归因到 prompt / tool / data / orchestration
+  （含 LLM Judge）」，失败自动归因到 prompt / tool / data / orchestration；
+  评测口径本身也做治理——**合格集双分母**（环境故障不进分母）、**逐轮判定**（多轮不只算总数）、
+  **守护组门禁 + McNemar 配对检验**（改动先过基线，回归即拦下）
 
 ## 🏗️ 架构（按请求流向分层）
 
@@ -55,7 +57,7 @@
  ├─⑥ 观测层    结构化事件日志 · 失败率/步数/P95 指标 · Langfuse 链路追踪
  │             infra.py(log_event) · trace.py
  │
- └─⑦ 评测层    用例生成 · 五维判定 · K=3 稳定性 · 11 类失败归因 · A/B 对比
+ └─⑦ 评测层    用例生成 · 五维判定 · K=3 稳定性 · 12 类失败归因 · A/B 对比
                 gen_cases.py · gen_extra_cases.py · build_core_set.py
                 · eval_runner.py · eval_judge.py · eval_attribution.py · eval_report.py
 ```
@@ -233,13 +235,46 @@ v3 比 v2 低不是退步，是**刻意的取舍**：为了不把「有工具支
 
 校准后干净样本最低 8.33、缺陷样本最高 6.33，6.5 落在间隔中间。
 
-**失败归因（`eval_attribution.py`）**：11 类
+**失败归因（`eval_attribution.py`）**：12 类
 `INTENT_MISUNDERSTAND / WRONG_TOOL / WRONG_ARGUMENT / BAD_ARGUMENT / TOOL_FAILURE /
 NUMERIC_MISS / HALLUCINATION / FORBIDDEN_CONTENT / MISSING_REQUIRED /
 TOOL_DISCIPLINE / LOOP_GUARD / LOW_QUALITY`
 
 每类映射到「该改哪个组件」，输出的是「先改 prompt（影响 X 条）」这种可执行结论，
 而不是一串红叉。
+
+**分母治理：谁有资格进通过率**
+
+通过率的分母不是「跑了多少条」，而是「有多少条可判定」。空回答、工具超时、内部错误
+属于环境故障，留在分母里只会把通过率拖成噪声；而**参数填错（`BAD_ARGUMENT`）保留**——
+那是模型行为，剔除等于包庇模型。所以报告同时输出两个数：总量口径 + 合格集口径。
+
+```text
+合格集 193/193　合格集通过率 99.5%　未被剔除任何用例
+工具错误 1/16（6.2%）　R12          ← 第二指标与通过率并列，防止「分涨了但错也变多」
+```
+
+**逐轮判定：多轮用例不能「整轮算」**
+
+原来的判定是「整个会话里该调的工具出现过没有」，模型可以第一轮把活全干完、后面纯嘴答。
+现在按轮采集 `turns`，逐轮比对期望：
+
+```bash
+python eval_report.py --cases eval_cases_core.json --multi-turn --k 3
+# 逐轮对齐 12/12　无错位
+```
+
+16 条多轮用例里 12 条可逐轮判定、零错位；另外 4 条因为「2 轮只写了 1 条期望」无法判定，
+返回 `None` **不参与统计**（不猜）。上线当天就抓出一条用例 bug：R09 的 `expected_tools`
+按轮次写反了，模型行为其实完全正确——**评测改造第一天抓到的是用例错误，不是模型错误**。
+
+**守护组 + 配对检验：改动先过基线**
+
+- **守护组**：基线稳定通过、且两次都不 flaky 的用例，一旦回归就 `exit 1`（`--allow-regression` 放行）
+- **McNemar 精确检验**：只统计「不一致的格子」（修好 X / 回归 Y），样本量需求比「比总体通过率」低一个量级
+
+**失败集中度**：按类型降序累积，输出 top1 / top2 覆盖率。若头部两类覆盖六成以上，
+优化顺序就是算出来的，而不是拍脑袋。
 
 **A/B 对比（`eval_report.py --baseline`）**：对比两次评测的通过率、平均步数、flaky 数、
 修复了哪些用例、回归了哪些用例——这是「改动有没有用」的唯一证据。
