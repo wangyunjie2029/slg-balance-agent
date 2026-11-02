@@ -46,6 +46,13 @@ API_TOKEN = os.getenv("API_TOKEN", "")
 # ===== 降级 =====
 FAILURE_THRESHOLD = int(os.getenv("FAILURE_THRESHOLD", "2"))
 
+# ===== 评测 =====
+# Judge 三项均分的及格线。校准来源：eval_judge_calibration.py（30 条锚点，
+# 6.5 上一致率 96.7%、零误杀、F1 0.971）。
+# 单一事实源：eval_runner 判 strict、eval_report 打文案，都读这一个值。
+# 历史 bug：eval_runner 曾本地写死 6.0，而报告文案按 6.5 打印 → 报告在说谎。
+JUDGE_THRESHOLD = float(os.getenv("JUDGE_THRESHOLD", "6.5"))
+
 
 def validate() -> list[str]:
     """返回配置问题列表。空列表 = 一切正常。"""
@@ -89,5 +96,6 @@ def summary() -> dict:
         "rate_limit": f"{RATE_LIMIT_CAPACITY}/{RATE_LIMIT_REFILL}per sec",
         "auth_enabled": bool(API_TOKEN),
         "failure_threshold": FAILURE_THRESHOLD,
+        "judge_threshold": JUDGE_THRESHOLD,
         "api_key_set": bool(API_KEY),
     }

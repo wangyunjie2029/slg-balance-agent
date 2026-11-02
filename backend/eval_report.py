@@ -20,6 +20,7 @@
 import argparse
 import json
 import os
+import sys
 import time
 
 from config import summary as config_summary
@@ -137,6 +138,8 @@ def run_all(
                     "missing": [],
                     "answer_excerpt": f"ERROR {msg[:120]}",
                     "api_error": True,
+                    "eligible": False,
+                    "ineligible_reason": "API_ERROR",
                 }
             )
             continue
@@ -209,6 +212,36 @@ def _stratify(results: list[dict], cases: list[dict]) -> dict:
     return out
 
 
+def concentration(by_kind: list) -> dict:
+    """失败类型集中度：head 部分覆盖了多少失败量。
+
+    为什么要有这个：只知道"11 类失败各几条"没法指导优化；要知道
+    「top2 是否覆盖 60% 以上」——如果覆盖了，优化顺序就是算出来的，不是拍出来的。
+    这是 CSI 论文 Figure 2 的思想在评测侧的平移（那边量的是增益集中度）。
+    """
+    counts = sorted(((k, c) for k, c in by_kind), key=lambda x: -x[1])
+    total = sum(c for _, c in counts)
+    rows, acc = [], 0
+    for kind, c in counts:
+        acc += c
+        rows.append(
+            {
+                "kind": kind,
+                "count": c,
+                "share": round(c / total, 3) if total else 0.0,
+                "cum_share": round(acc / total, 3) if total else 0.0,
+            }
+        )
+    return {
+        "rows": rows,
+        "total": total,
+        "top1_cover": rows[0]["share"] if rows else 0.0,
+        "top2_cover": (
+            rows[1]["cum_share"] if len(rows) > 1 else (rows[0]["cum_share"] if rows else 0.0)
+        ),
+    }
+
+
 def build_report(
     results: list[dict], cases: list[dict], k: int, cases_path: str
 ) -> dict:
@@ -217,7 +250,10 @@ def build_report(
     rows = []
     for r in results:
         case = by_id.get(r["case_id"], {"case_id": r["case_id"]})
-        rows.append(attribute(case, r))
+        # 口径对齐：稳定失败的用例，用"真的失败那一次"去做归因；
+        # 通过了就用主结果。混用会导致"通过了却被归因成失败"。
+        attr_input = r if r.get("stable_pass", True) else (r.get("fail_run") or r)
+        rows.append(attribute(case, attr_input))
 
     summary = aggregate(rows)
 
@@ -231,12 +267,49 @@ def build_report(
 
     steps = [r.get("steps", 0) for r in results if r.get("steps") is not None]
 
+    # ---- 分母治理：谁有资格进入通过率（Project1/59 第 2 条）----
+    # 口径：只剔除"记录不可用"（空回答、超时、内部错误、API 错），不剔除"模型答错"。
+    ineligible = [
+        {"case_id": r["case_id"], "reason": r.get("ineligible_reason") or "UNKNOWN"}
+        for r in results
+        if not r.get("eligible", True)
+    ]
+    ineligible_ids = {x["case_id"] for x in ineligible}
+    eligible_rows = [r for r in results if r["case_id"] not in ineligible_ids]
+    eligible_passed = sum(1 for r in eligible_rows if r["stable_pass"])
+
+    # ---- 逐轮判定（Project1/61 Phase 1：只测量，不改判定）----
+    turn_checked = [r for r in results if r.get("turn_aligned") is not None]
+    turn_misaligned = [r["case_id"] for r in turn_checked if not r.get("turn_aligned")]
+
+    # ---- 第二指标：工具错误率 ----
+    # 为什么要和通过率并列：CSI 的消融表里，删掉一个组件时成功率只掉 3 个点，
+    # 但非法/工具错误率几乎翻倍（5.8→9.4）。只看通过率会低估"少犯错"的价值。
+    tool_error_cases = [r["case_id"] for r in eligible_rows if r.get("error_codes")]
+
+    # 供 cases 明细复用，避免在里面写 O(n²) 的查找
+    stable_map = {r["case_id"]: r.get("stable_pass") for r in results}
+    strict_map = {r["case_id"]: r.get("strict_pass") for r in results}
+
     return {
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "cases_path": cases_path,
         "k": k,
         "config": config_summary(),
         "total": len(results),
+        "eligible": len(eligible_rows),
+        "ineligible": ineligible,
+        "pass_rate_eligible": round(eligible_passed / len(eligible_rows), 3)
+        if eligible_rows
+        else 0.0,
+        "tool_error_cases": tool_error_cases,
+        "tool_error_rate": round(len(tool_error_cases) / len(eligible_rows), 3)
+        if eligible_rows
+        else 0.0,
+        "turn_checked": len(turn_checked),
+        "turn_aligned_n": len(turn_checked) - len(turn_misaligned),
+        "turn_misaligned_cases": turn_misaligned,
+        "failure_concentration": concentration(summary["by_kind"]),
         "passed": sum(1 for r in results if r["stable_pass"]),
         "pass_rate": summary["pass_rate"],
         "strict_passed": sum(1 for r in results if r.get("strict_pass")),
@@ -261,6 +334,9 @@ def build_report(
             {
                 "case_id": r.case_id,
                 "passed": r.passed,
+                # 三个口径同时记，避免"cases.passed 是第 0 次运行、头条是多数票"的老问题
+                "stable_pass": bool(stable_map.get(r.case_id, r.passed)),
+                "strict_pass": bool(strict_map.get(r.case_id, False)),
                 "primary": r.primary.kind if r.primary else None,
                 "evidence": r.primary.evidence if r.primary else "",
             }
@@ -279,6 +355,54 @@ def save_report(report: dict, path: str) -> None:
 def load_report(path: str) -> dict:
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _case_pass_map(report: dict) -> dict:
+    """case_id → 是否通过。
+
+    优先用 stable_pass（K 次多数票，与头条口径一致）；
+    老报告没有这个字段时退回 passed（第 0 次运行），并在注释里说明差异来源。
+    """
+    out = {}
+    for c in report.get("cases") or []:
+        if "stable_pass" in c:
+            out[c["case_id"]] = bool(c["stable_pass"])
+        else:
+            out[c["case_id"]] = bool(c.get("passed"))
+    return out
+
+
+def guard_breaks(baseline: dict, current: dict) -> list[str]:
+    """守护组被打破的用例：基线稳定通过、两次都不 flaky、现在挂了。
+
+    为什么剔 flaky：一会儿过一会儿挂的用例，本身就不该当"守护者"——
+    它挂掉多半是噪声，不是改动造成的。把它算进去，门禁会天天误报。
+    """
+    base_map = _case_pass_map(baseline)
+    cur_map = _case_pass_map(current)
+    noisy = set(baseline.get("flaky_cases") or []) | set(current.get("flaky_cases") or [])
+    return sorted(
+        cid
+        for cid in base_map
+        if base_map[cid] and cid in cur_map and cid not in noisy and not cur_map[cid]
+    )
+
+
+def mcnemar_exact(b: int, c: int) -> float:
+    """配对二分类的精确检验（McNemar，双尾）。
+
+    只统计"不一致的格子"：b = 基线过、现在挂；c = 基线挂、现在过。
+    两边都过或都挂的 case 不提供信息——这正是配对设计比"比总体通过率"
+    省一个量级样本的原因，也是 CSI 论文"同状态比较"的统计版。
+    """
+    from math import comb
+
+    n = b + c
+    if n == 0:
+        return 1.0
+    k = min(b, c)
+    p = 2 * sum(comb(n, i) for i in range(k + 1)) / (2**n)
+    return min(1.0, p)
 
 
 def compare(baseline: dict, current: dict) -> str:
@@ -302,14 +426,51 @@ def compare(baseline: dict, current: dict) -> str:
         "{:.0f}",
     )
 
-    base_fail = set(baseline["stable_fail_cases"])
-    cur_fail = set(current["stable_fail_cases"])
+    # ---- 配对口径统一 ----
+    # 只比"两次都跑过的 case"，用 stable_pass 判；这样下面的结论、回归清单、
+    # 配对检验、守护组门禁四处用的是同一套口径（以前四处各算各的，会自相矛盾）。
+    base_map = _case_pass_map(baseline)
+    cur_map = _case_pass_map(current)
+    common = sorted(set(base_map) & set(cur_map))
+    fixed = [cid for cid in common if not base_map[cid] and cur_map[cid]]
+    broken = [cid for cid in common if base_map[cid] and not cur_map[cid]]
+    fixed_n, regressed_n = len(fixed), len(broken)
 
-    fixed = sorted(base_fail - cur_fail)
-    broken = sorted(cur_fail - base_fail)
+    lines += ["", f"修好了 {fixed_n} 条：{', '.join(fixed) if fixed else '无'}"]
+    lines += [f"回归了 {regressed_n} 条：{', '.join(broken) if broken else '无'}"]
 
-    lines += ["", f"修好了 {len(fixed)} 条：{', '.join(fixed) if fixed else '无'}"]
-    lines += [f"回归了 {len(broken)} 条：{', '.join(broken) if broken else '无'}"]
+    # 统计检验要剔掉 flaky：同一条用例一会儿过一会儿挂，不是改动的功劳或罪过，
+    # 放进检验里只会稀释效应量。所以"配对检验"和"守护组"都用干净集。
+    noisy = set(baseline.get("flaky_cases") or []) | set(current.get("flaky_cases") or [])
+    clean = [cid for cid in common if cid not in noisy]
+    fixed_clean = sum(1 for cid in clean if not base_map[cid] and cur_map[cid])
+    regressed_clean = sum(1 for cid in clean if base_map[cid] and not cur_map[cid])
+    p_val = mcnemar_exact(regressed_clean, fixed_clean)
+    flipped_noise = (set(fixed) | set(broken)) & noisy
+
+    lines += [
+        "",
+        f"配对表（剔除 flaky 后 {len(clean)} 条）：修好 {fixed_clean} / 回归 "
+        f"{regressed_clean}　McNemar p={p_val:.3f}",
+    ]
+    if flipped_noise:
+        lines.append(
+            f"  另有 {len(flipped_noise)} 条 flaky 用例结果翻转"
+            f"（{'、'.join(sorted(flipped_noise))}），属噪声，未计入检验"
+        )
+    if fixed_clean + regressed_clean == 0 and not flipped_noise:
+        lines.append("  → 两边完全一致：这次改动没有改变任何一条用例的结果。")
+    elif p_val >= 0.05:
+        lines.append("  → 差异不显著（p≥0.05）：样本量不足以证明有效，别急着下结论。")
+
+    # ---- 守护组：基线稳定通过、且两次都不 flaky 的 case，一票否决 ----
+    guard = [cid for cid in clean if base_map[cid]]
+    guard_broken = [cid for cid in guard if not cur_map[cid]]
+    lines += [
+        "",
+        f"守护组 {len(guard)} 条（基线全过）→ 回归 {len(guard_broken)} 条"
+        + ("　★ 一票否决：先修好再谈改进" if guard_broken else "　✓ 通过"),
+    ]
 
     # 失败类型变化：看改的是不是对的那一层
     base_kind = dict(baseline["failure_by_kind"])
@@ -322,11 +483,16 @@ def compare(baseline: dict, current: dict) -> str:
             flag = " ↓" if b < a else (" ↑" if b > a else "")
             lines.append(f"  {k:<24} {a:>3} → {b:>3}{flag}")
 
-    # 给一句结论
-    if current["pass_rate"] > baseline["pass_rate"] and not broken:
-        verdict = "本次改动有效，且没有引入回归。"
-    elif broken:
-        verdict = f"本次改动有回归（{len(broken)} 条），需要回看改动范围。"
+    # 给一句结论（与守护组同口径，避免"上面说回归 2 条、下面说零回归"）
+    if guard_broken:
+        verdict = f"本次改动有回归（{len(guard_broken)} 条），先回滚或定位再谈改进。"
+    elif fixed_clean and p_val < 0.05:
+        verdict = f"有效：修复 {fixed_clean} 条（p={p_val:.3f}），守护组通过。"
+    elif fixed_clean:
+        verdict = (
+            f"方向对但证据不足：仅修复 {fixed_clean} 条（p={p_val:.3f}），"
+            "扩样本再下结论。"
+        )
     elif current["pass_rate"] == baseline["pass_rate"]:
         verdict = "指标没变化 —— 说明改的那一层不是瓶颈，先看归因的 top_action。"
     else:
@@ -388,9 +554,38 @@ def main():
         choices=["all", "balanced", "extreme", "compare"],
         help="只跑某一难度层（balanced = 均势对局，最有区分度）",
     )
+    ap.add_argument(
+        "--category",
+        default="",
+        help="只跑某一类（如 multiturn / tool_error），空=全部。"
+        "用途：改逐轮判定时只重跑 17 条多轮，5 分钟而不是 40 分钟",
+    )
+    ap.add_argument(
+        "--multi-turn",
+        action="store_true",
+        help="只跑多轮用例（question 是列表且长度>1）。"
+        "注意：多轮用例散落在 multiturn/routing/numeric 三类里，只按 --category 会漏",
+    )
+    ap.add_argument(
+        "--allow-regression",
+        action="store_true",
+        help="守护组出现回归时仍然以 0 退出（默认非零退出，用于拦截）",
+    )
     args = ap.parse_args()
 
     cases = load_cases(args.cases)
+    if args.category:
+        before = len(cases)
+        cases = [c for c in cases if c.get("category") == args.category]
+        print(f"按类型筛选 [{args.category}]：{before} → {len(cases)} 条")
+    if args.multi_turn:
+        before = len(cases)
+        cases = [
+            c
+            for c in cases
+            if isinstance(c.get("question"), list) and len(c["question"]) > 1
+        ]
+        print(f"只跑多轮：{before} → {len(cases)} 条")
     if args.only != "all":
         before = len(cases)
         cases = filter_by_difficulty(cases, args.only)
@@ -420,9 +615,54 @@ def main():
     print()
     print(
         f"规则通过 {report['passed']}/{report['total']}"
-        f"　严格通过（含 Judge≥{JUDGE_THRESHOLD}）{report['strict_passed']}/{report['total']}"
+        f"　严格通过（含 Judge≥{JUDGE_THRESHOLD}）"
+        f"{report['strict_passed']}/{report['total']}"
         f"　Judge 均分 {report['avg_judge']}"
     )
+
+    # 双分母：合格集口径 + 剔除清单（分母治理）
+    ineligible = report.get("ineligible") or []
+    print(
+        f"合格集 {report['eligible']}/{report['total']}"
+        f"　合格集通过率 {report['pass_rate_eligible']:.1%}"
+        + (
+            "　剔除："
+            + "、".join(f"{x['case_id']}({x['reason']})" for x in ineligible[:6])
+            + ("…" if len(ineligible) > 6 else "")
+            if ineligible
+            else "　未被剔除任何用例"
+        )
+    )
+    # 第二指标：工具错误率（和通过率并列看，别只看"涨了多少分"）
+    te = report.get("tool_error_cases") or []
+    print(
+        f"工具错误 {len(te)}/{report['eligible']}（{report.get('tool_error_rate', 0):.1%}）"
+        + (f"　{'、'.join(te[:6])}{'…' if len(te) > 6 else ''}" if te else "")
+    )
+
+    # 逐轮判定：只测量，不改判定（Phase 1）
+    if report.get("turn_checked"):
+        mis = report.get("turn_misaligned_cases") or []
+        print(
+            f"逐轮对齐 {report['turn_aligned_n']}/{report['turn_checked']}"
+            + (f"　错位：{'、'.join(mis)}" if mis else "　无错位")
+        )
+
+    # 失败集中度：top-k 覆盖率决定优化顺序
+    conc = report.get("failure_concentration") or {}
+    if conc.get("total"):
+        print(
+            f"失败集中度：top1 {conc['top1_cover']:.0%}　"
+            f"top2 {conc['top2_cover']:.0%}（共 {conc['total']} 条失败）"
+        )
+        for row in conc["rows"][:4]:
+            print(
+                f"  {row['kind']:<22}{row['count']:>3} 条　"
+                f"占比 {row['share']:.0%}　累积 {row['cum_share']:.0%}"
+            )
+        if conc["top2_cover"] >= 0.6:
+            print("  → 头部两类已覆盖多数失败：先改这两类，长尾暂缓。")
+
     print()
     print(render_stratified(report["stratified"]))
 
@@ -434,6 +674,16 @@ def main():
         base = load_report(args.baseline)
         print()
         print(compare(base, report))
+
+        # 守护组门禁：基线稳定通过的用例一旦回归，就非零退出（可被 --allow-regression 放行）
+        if not args.allow_regression:
+            broken = guard_breaks(base, report)
+            if broken:
+                print(
+                    f"\n[门禁] 守护组回归 {len(broken)} 条：{', '.join(broken)}\n"
+                    "       按约定应阻断；确认可接受再用 --allow-regression 重跑。"
+                )
+                sys.exit(1)
 
 
 if __name__ == "__main__":

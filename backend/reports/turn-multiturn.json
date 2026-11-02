@@ -1,0 +1,217 @@
+{
+  "generated_at": "2026-11-02 11:01:55",
+  "cases_path": "eval_cases_core.json",
+  "k": 3,
+  "config": {
+    "model": "deepseek-chat",
+    "max_rounds": 10,
+    "window_size": 12,
+    "sim_n": 500,
+    "damage_jitter": 0.35,
+    "sim_seed": 42,
+    "tool_timeout": 30.0,
+    "rate_limit": "20/0.5per sec",
+    "auth_enabled": false,
+    "failure_threshold": 2,
+    "judge_threshold": 6.5,
+    "api_key_set": true
+  },
+  "total": 16,
+  "eligible": 16,
+  "ineligible": [],
+  "pass_rate_eligible": 1.0,
+  "tool_error_cases": [
+    "R12"
+  ],
+  "tool_error_rate": 0.062,
+  "turn_checked": 12,
+  "turn_aligned_n": 12,
+  "turn_misaligned_cases": [],
+  "failure_concentration": {
+    "rows": [
+      {
+        "kind": "BAD_ARGUMENT",
+        "count": 1,
+        "share": 1.0,
+        "cum_share": 1.0
+      }
+    ],
+    "total": 1,
+    "top1_cover": 1.0,
+    "top2_cover": 1.0
+  },
+  "passed": 16,
+  "pass_rate": 1.0,
+  "strict_passed": 16,
+  "strict_pass_rate": 1.0,
+  "avg_judge": 9.34,
+  "flaky_cases": [],
+  "stable_fail_cases": [],
+  "avg_steps": 3.44,
+  "failure_by_kind": [
+    [
+      "BAD_ARGUMENT",
+      1
+    ]
+  ],
+  "failure_by_owner": [
+    [
+      "tool",
+      1
+    ]
+  ],
+  "top_action": "先改 tool（影响 1 条）",
+  "stratified": {
+    "extreme": {
+      "total": 0,
+      "passed": 0,
+      "pass_rate": null
+    },
+    "balanced": {
+      "total": 0,
+      "passed": 0,
+      "pass_rate": null
+    },
+    "compare": {
+      "total": 0,
+      "passed": 0,
+      "pass_rate": null
+    },
+    "other": {
+      "total": 16,
+      "passed": 16,
+      "pass_rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "E101",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E102",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E103",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E104",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E105",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E106",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E107",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E108",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E109",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E110",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E111",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "E112",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R02",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R08",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R09",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": null,
+      "evidence": ""
+    },
+    {
+      "case_id": "R12",
+      "passed": true,
+      "stable_pass": true,
+      "strict_pass": true,
+      "primary": "BAD_ARGUMENT",
+      "evidence": "tool returned BAD_ARGUMENT"
+    }
+  ],
+  "rendered": "通过率 100.0%（16/16）\n\n失败类型分布：\n  BAD_ARGUMENT             1  → JSON Schema / 参数描述\n\n按组件聚合（修复优先级）：\n  tool             1 条\n\n结论：先改 tool（影响 1 条）\n\n失败明细：\n  [BAD_ARGUMENT] R12 — tool returned BAD_ARGUMENT\n       修法：在 description 里列出可选值；或加 enum 约束"
+}

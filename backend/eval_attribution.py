@@ -24,6 +24,10 @@
 from collections import Counter
 from dataclasses import dataclass, field
 
+# 单一事实源：阈值定义在 config.py，这里只引用不复制。
+# 曾经这里写 6.5、eval_runner 写 6.0，报告按 6.5 打文案却按 6.0 判定。
+from config import JUDGE_THRESHOLD
+
 # ============================================================
 # 1. 失败分类表：类型 → 根因组件 → 修法
 #    这张表决定归因质量，比代码逻辑重要。想加类型就往这里加。
@@ -128,7 +132,7 @@ SEVERITY = {
 #   （6 问 × 5 变体：正确 / 数字错 / 缺要点 / 编造因果 / 越界）验证，
 #   在 6.5 上一致率 30/30、零误杀零漏放（干净样本最低 8.33，缺陷样本最高 6.33）。
 #   复现：python eval_judge_calibration.py → reports/judge-calibration.json
-JUDGE_THRESHOLD = 6.5
+# ★ 2026-11-02 起：值已迁到 config.JUDGE_THRESHOLD（单一事实源），本文件顶部 import。
 
 
 @dataclass

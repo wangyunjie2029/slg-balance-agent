@@ -6,6 +6,7 @@ import sqlite3
 import uuid
 
 from agent import ask_agent_stream
+from config import JUDGE_THRESHOLD
 from eval_judge import judge_answer
 
 
@@ -72,6 +73,87 @@ def _is_asserted(text: str, phrase: str, window: int = 18) -> bool:
         start = i + 1
 
 
+def _check_eligible(answer_text: str, error_codes: list[str]) -> tuple[bool, str | None]:
+    """这条运行记录有没有资格进入通过率的分母。
+
+    只判"记录本身可用不可用"，不判"模型答得对不对"：
+      · 空回答           → 不可用：没有可判定的对象
+      · TIMEOUT/INTERNAL → 环境/系统故障，不是模型能力，留在分母里会污染结论
+      · BAD_ARGUMENT     → **不剔除**：参数填错是模型行为；而且 tool_error 类用例
+                           本来就故意触发它，剔掉等于把这类题从考卷上撕了
+
+    论文的资格门槛是为训练服务的（要干净的目标），评测的资格门槛是为度量服务的
+    （要干净的考卷）——同名不同义，这一点必须在注释里说清楚，否则会被抄歪。
+    """
+    if not answer_text or not answer_text.strip():
+        return False, "EMPTY_ANSWER"
+    for code in error_codes:
+        if code in _SYSTEM_ERROR_CODES:
+            return False, code
+    return True, None
+
+
+def _turn_hit(turn_tools: list, exp_tool: str, exp_args: dict) -> bool:
+    """本轮是否命中某条期望（子集匹配：只校验声明过的参数）。"""
+    return any(
+        name == exp_tool and all(args.get(k) == v for k, v in exp_args.items())
+        for name, args in turn_tools
+    )
+
+
+def _as_pairs(item) -> list:
+    """把一条期望统一成 [(tool, args), ...]。
+
+    用例里存在两种写法：
+      ["simulate_matchup", {...}]                     一条期望
+      [["simulate_matchup", {...}], ["get_unit_info", {...}]]  同一轮多条期望
+    两种都要能读，否则多轮用例一进来就崩（实测过）。
+    """
+    if isinstance(item, (list, tuple)) and len(item) == 2 and isinstance(item[0], str):
+        return [(item[0], item[1])]
+    return [(t, a) for t, a in item]
+
+
+def _turn_expectations(case: dict, n_turns: int):
+    """把用例的期望整理成「每轮一组」，返回 None 表示无法逐轮判断。"""
+    per_turn = case.get("expected_tools_by_turn")
+    if per_turn is not None:
+        return [_as_pairs(x) for x in per_turn]
+    flat = case.get("expected_tools") or []
+    if len(flat) != n_turns:  # 单轮多工具等：条数对不上，不猜
+        return None
+    return [_as_pairs(x) for x in flat]
+
+
+def _check_turn_alignment(case: dict, turns: list) -> bool | None:
+    """轮次对齐检查（Project1/61 的 Phase 1：只测量，不改判定）。
+
+    返回：
+      True  — 每条期望都出现在它该出现的那一轮
+      False — 有期望只出现在别的轮次（"假通过"的嫌疑）
+      None  — 无法判断，不参与统计
+
+    判定规则（有意保守，先测量再收紧）：
+      1. 用例显式写了 expected_tools_by_turn → 逐轮严格比对
+      2. 只写了 expected_tools，且条数 == 轮数 → 按书写顺序对应（E101 就是这种）
+      3. 其他情况（单轮多工具等）→ None，保持原来的整轮口径
+
+    注意：结果只进报告，**不进 stable_pass / strict_pass**。等人工确认过规则再升级，
+    否则一次误判会把 193 条的基线数字全改掉。
+    """
+    expected = _turn_expectations(case, len(turns))
+    if expected is None:
+        return None
+    if len(expected) != len(turns):
+        return False  # 显式声明了逐轮期望，却和轮数对不上 → 用例本身有问题
+    for turn, exp_list in zip(turns, expected):
+        for exp_tool, exp_args in exp_list:
+            if not _turn_hit(turn["tools"], exp_tool, exp_args):
+                return False
+    return True
+
+
+
 def run_case(case: dict, run_index: int = 0) -> dict:
     collected_tools = []  # [(tool_name, args), ...]
     collected_results = []  # [(tool_name, 返回摘要), ...] ← 给 Judge 当证据
@@ -85,20 +167,34 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         case["question"] if isinstance(case["question"], list) else [case["question"]]
     )
 
+    turns = []  # [{q, tools, answer, error_codes}] ← 逐轮采集，见 Project1/61
     for q in questions:  # 单轮案例 = 循环 1 次，行为不变
+        turn_tools, turn_answers, turn_errors = [], [], []
         for evt in ask_agent_stream(q, thread_id=thread_id, max_rounds=10):
             if evt["event"] == "tool_call":
+                turn_tools.append((evt["data"]["tool"], evt["data"]["args"]))
                 collected_tools.append((evt["data"]["tool"], evt["data"]["args"]))
             elif evt["event"] == "tool_result":
                 # ★ 新增：把工具层的结构化错误码收集起来，供失败归因使用
                 data = evt["data"]
                 if isinstance(data, dict) and data.get("error_code"):
                     error_codes.append(data["error_code"])
+                    turn_errors.append(data["error_code"])
                 # 同时留一份返回摘要当证据：Judge 不看工具返回值时，
                 # 会把「有工具支撑的数字」误判成「编造数字」（实测踩过）。
                 collected_results.append(str(data)[:200])
             elif evt["event"] == "answer":
                 answer_text = evt["data"]["text"]  # 多轮时自然留下最后一轮的回答
+                turn_answers.append(answer_text)
+        # 逐轮留痕：没有这一层，"第一轮把活全干完、后面纯嘴答"永远查不出来
+        turns.append(
+            {
+                "q": q,
+                "tools": turn_tools,
+                "answer": turn_answers[-1] if turn_answers else "",
+                "error_codes": turn_errors,
+            }
+        )
 
     # 判定 1：工具路由（期望的每个 (工具名, 关键参数) 都被调用过）
     routing_ok = True
@@ -162,6 +258,9 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         evidence=evidence,
     )
 
+    # 资格判定：决定这条记录进不进通过率的分母（只剔"环境坏了"，不剔"模型错了"）
+    eligible, ineligible_reason = _check_eligible(answer_text, error_codes)
+
     return {
         "case_id": case["case_id"],
         "routing_ok": routing_ok,
@@ -181,11 +280,26 @@ def run_case(case: dict, run_index: int = 0) -> dict:
         and contains_ok
         and tools_discipline_ok,
         "judge": judge,
+        # ---- 以下三个字段服务于"分母治理"与"逐轮判定"（Project1/59、61）----
+        "turns": turns,
+        "eligible": eligible,
+        "ineligible_reason": ineligible_reason,
+        "turn_aligned": _check_turn_alignment(case, turns),
     }
 
 
 K = 3  # 默认每案例运行次数
-JUDGE_PASS_THRESHOLD = 6.0  # Judge 三项均分及格线（strict 口径用）
+
+# Judge 及格线来自 config（单一事实源）。
+# 历史 bug：本文件曾写死 6.0，而 eval_report 的文案按 eval_attribution 的 6.5 打印，
+# 等于"报告说 6.5、代码判 6.0"。统一之后，这种口径不一致不可能再出现。
+#
+# ---- 资格（eligibility）判据 ----
+# 对照 CSI 论文（Findings of EMNLP 2026）的 eligibility：只有"记录本身可用"的样本
+# 才进比较集。但它剔除的是"环境无法恢复/动作无法解析"的**训练目标**，目的是造干净
+# 监督信号；评测的目的相反——量模型的真实水平。所以这里只剔除"环境坏了"，不剔除
+# "模型答错了"：参数填错（BAD_ARGUMENT）属于模型行为，剔除它等于包庇模型。
+_SYSTEM_ERROR_CODES = {"TIMEOUT", "INTERNAL"}
 
 
 def _judge_avg(r: dict) -> float:
@@ -214,8 +328,17 @@ def run_case_stable(case: dict, k: int = K) -> dict:
     strict_passes = sum(
         1
         for r in results
-        if r["overall_ok"] and _judge_avg(r) >= JUDGE_PASS_THRESHOLD
+        if r["overall_ok"] and _judge_avg(r) >= JUDGE_THRESHOLD
     )
+
+    # 只要 K 次里有任意一次是"环境坏了"，这条用例就不进分母：
+    # 否则一次超时会把一条本来能过的用例算成失败，通过率被环境噪声拉低。
+    bad_runs = [r for r in results if not r.get("eligible", True)]
+    # 逐轮对齐：K 次都对齐才算对齐；没声明的（None）保持 None
+    flags = [r.get("turn_aligned") for r in results]
+    turn_aligned = None
+    if any(f is not None for f in flags):
+        turn_aligned = all(f is True for f in flags if f is not None)
 
     return {
         **results[0],
@@ -224,7 +347,13 @@ def run_case_stable(case: dict, k: int = K) -> dict:
         "flaky": 0 < passes < k,
         "pass_rate": passes / k,
         "strict_rate": strict_passes / k,
+        # 归因要拿"真的失败的那一次"去看，而不是第 0 次：
+        # 否则会出现"这条用例多数票通过了，却被归因为 BAD_ARGUMENT"的口径错位。
+        "fail_run": next((r for r in results if not r["overall_ok"]), None),
         "judge_avg": round(sum(_judge_avg(r) for r in results) / k, 2),
+        "eligible": not bad_runs,
+        "ineligible_reason": bad_runs[0].get("ineligible_reason") if bad_runs else None,
+        "turn_aligned": turn_aligned,
         "runs_detail": [  # 每次运行的死因
             (r["overall_ok"], r["missing"], r["tools_called"]) for r in results
         ],

@@ -1,8 +1,5 @@
 """一条命令复现简历上所有可当场验证的数字。
 
-定位：面试现场「当场证明数字不是编的」时用。
-    所有输出要么**当场计算**，要么**读取已落盘的报告**——没有任何硬编码的结论值。
-
 用法：
     python verify.py               # 全部（约 3-5 秒）
     python verify.py --skip-perf   # 跳过需要跑计算的性能项（约 1 秒，只读报告）
@@ -67,7 +64,9 @@ def main() -> None:
         print(f"  均势对局（真值 20%~80%）{len(balanced)} 条")
         print(
             f"  类型覆盖 {len(cats)} 类："
-            + "、".join(f"{k} {v}" for k, v in sorted(cats.items(), key=lambda x: -x[1]))
+            + "、".join(
+                f"{k} {v}" for k, v in sorted(cats.items(), key=lambda x: -x[1])
+            )
         )
     else:
         print("  ⚠ 用例文件缺失")
@@ -93,13 +92,42 @@ def main() -> None:
         )
         bal = (r.get("stratified") or {}).get("balanced")
         if bal:
-            print(f"  均势对局 {bal['passed']}/{bal['total']}（{bal['pass_rate']:.1%}）← 唯一有区分度的部分")
+            print(
+                f"  均势对局 {bal['passed']}/{bal['total']}（{bal['pass_rate']:.1%}）← 唯一有区分度的部分"
+            )
         if r["stable_fail_cases"]:
             print(f"  稳定失败用例：{'、'.join(r['stable_fail_cases'])}")
         if r["flaky_cases"]:
             print(f"  flaky 用例：{'、'.join(r['flaky_cases'])}（K=3 才能筛出来）")
+        # 2026-11-02 新增的三行：分母治理 + 逐轮判定 + 失败集中度
+        # 老报告没有这些字段，用 .get 兜底，保证"任何版本的报告都能读"
+        if "eligible" in r:
+            print(
+                f"  合格集 {r['eligible']}/{r['total']}"
+                f"（剔除不可用记录 {len(r.get('ineligible') or [])} 条）"
+                f"　合格集通过率 {r.get('pass_rate_eligible', 0):.1%}"
+            )
+            if "tool_error_rate" in r:
+                print(
+                    f"  工具错误率 {r['tool_error_rate']:.1%}"
+                    f"（{len(r.get('tool_error_cases') or [])} 条）"
+                )
+        if r.get("turn_checked"):
+            mis = r.get("turn_misaligned_cases") or []
+            print(
+                f"  逐轮对齐 {r['turn_aligned_n']}/{r['turn_checked']}"
+                + (f"　错位：{'、'.join(mis)}" if mis else "　无错位")
+            )
+        conc = r.get("failure_concentration") or {}
+        if conc.get("total"):
+            print(
+                f"  失败集中度：top1 {conc['top1_cover']:.0%}"
+                f"　top2 {conc['top2_cover']:.0%}（共 {conc['total']} 条）"
+            )
     else:
-        print("  ⚠ 报告缺失，先跑：python eval_report.py --cases eval_cases_core.json --k 3")
+        print(
+            "  ⚠ 报告缺失，先跑：python eval_report.py --cases eval_cases_core.json --k 3"
+        )
 
     # ---------- 3 Judge 校准 ----------
     _head(3, total, "Judge 校准（30 条锚点）", "reports/judge-calibration.json")
@@ -130,7 +158,9 @@ def main() -> None:
             f"（{b['strict'][0]}/{b['strict'][1]} → {a['strict'][0]}/{a['strict'][1]}）"
         )
         print(f"  Judge 均分 {b['judge_avg']} → {a['judge_avg']}")
-        print(f"  修好 {ab.get('fixed') or '无'}　回归 {ab.get('regressed') or '无'} ← 关键：零回归")
+        print(
+            f"  修好 {ab.get('fixed') or '无'}　回归 {ab.get('regressed') or '无'} ← 关键：零回归"
+        )
     else:
         print("  ⚠ 报告缺失")
 
@@ -154,12 +184,19 @@ def main() -> None:
             + "　".join(f"{k} {v:.2f}" for k, v in dg["avg"].items())
             + "　← 器械 0.20 是刻意留的「野战偶有奇胜」"
         )
-        print("  ⚠ 口径：这是 20 场中性武将矩阵，不是评测集（评测集含真实武将，极端占 84.9%）")
+        print(
+            "  ⚠ 口径：这是 20 场中性武将矩阵，不是评测集（评测集含真实武将，极端占 84.9%）"
+        )
     except Exception as e:  # noqa: BLE001
         print(f"  ⚠ 计算失败：{type(e).__name__}: {e}")
 
     # ---------- 6 引擎性能（当场算） ----------
-    _head(6, total, "引擎性能与事件循环", "当场计算（loadtest.bench_engine / bench_event_loop）")
+    _head(
+        6,
+        total,
+        "引擎性能与事件循环",
+        "当场计算（loadtest.bench_engine / bench_event_loop）",
+    )
     try:
         from loadtest import bench_engine, bench_event_loop
 
@@ -175,8 +212,12 @@ def main() -> None:
         el = bench_event_loop()
         direct = el["direct_call"]["heartbeat_max_gap_ms"]
         threaded = el["to_thread"]["heartbeat_max_gap_ms"]
-        print(f"  事件循环：直接调用心跳 {direct}ms → to_thread {threaded}ms（{el['blocked_ratio']}x）")
-        print("  → 直接调用时间隔≈工作时长，说明整个循环被独占；这就是工具层必须离线的证据")
+        print(
+            f"  事件循环：直接调用心跳 {direct}ms → to_thread {threaded}ms（{el['blocked_ratio']}x）"
+        )
+        print(
+            "  → 直接调用时间隔≈工作时长，说明整个循环被独占；这就是工具层必须离线的证据"
+        )
     except Exception as e:  # noqa: BLE001
         print(f"  ⚠ 计算失败：{type(e).__name__}: {e}")
 

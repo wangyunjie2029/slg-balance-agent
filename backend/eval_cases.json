@@ -151,20 +151,20 @@
       [
         "simulate_matchup",
         {
-          "general_a": "袁绍",
-          "general_b": "张飞"
+          "general_a": "张飞",
+          "general_b": "袁绍"
         }
       ],
       [
         "simulate_matchup",
         {
-          "general_a": "张飞",
-          "general_b": "袁绍"
+          "general_a": "袁绍",
+          "general_b": "张飞"
         }
       ]
     ],
     "expected_facts": {},
-    "notes": "两跳指代：第二轮 A/B 双侧武将互换（骑兵+盾兵兵种保留）。任何一侧未换 = FAIL"
+    "notes": "两跳指代：第二轮 A/B 双侧武将互换（骑兵+盾兵兵种保留）。任何一侧未换 = FAIL（2026-11-02 修正：expected_tools 原按轮次反序书写，已改正）"
   },
   {
     "case_id": "R10",
